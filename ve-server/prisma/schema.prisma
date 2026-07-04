@@ -9,9 +9,167 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  customer
+  admin
+  owner
+}
+
+enum ProductStatus {
+  draft
+  active
+  inactive
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  shipped
+  delivered
+  cancelled
+}
+
+// region USER
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  createdAt DateTime @default(now())
+  id         Int       @id @default(autoincrement())
+  username   String    @unique
+  email      String    @unique
+  password   String
+  role       Role      @default(customer)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  customer   Customer?
+}
+
+// region CUSTOMER
+model Customer {
+  id         Int      @id @default(autoincrement())
+  user_id    Int      @unique
+  fname      String
+  lname      String
+  phone      String?
+  gender     String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user      User       @relation(fields: [user_id], references: [id])
+  addresses Address[]
+  // orders    Order[]
+  wishlists Wishlist[]
+  orders    Order[]
+}
+
+// region ADDRESS
+model Address {
+  id          Int      @id @default(autoincrement())
+  customer_id Int
+  line1       String
+  line2       String?
+  city        String
+  counrty     String
+  postal_code String
+  is_default  Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  customer Customer @relation(fields: [customer_id], references: [id])
+  // shipped_orders Order[]  @relation("ShippingAddress")
+  orders   Order[]
+}
+
+// region CATEGORY
+model Category {
+  id         Int      @id @default(autoincrement())
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  sub_categories SubCategory[]
+  products       Product[]
+}
+
+// region SUB-CATEGORY
+model SubCategory {
+  id          Int      @id @default(autoincrement())
+  name        String
+  category_id Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  category Category  @relation(fields: [category_id], references: [id])
+  products Product[]
+}
+
+// region PRODUCT
+model Product {
+  id              Int           @id @default(autoincrement())
+  title           String
+  description     String
+  price           Decimal
+  stock_quantity  Int           @default(0)
+  images_url      String[]
+  status          ProductStatus @default(draft)
+  category_id     Int
+  sub_category_id Int
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  category     Category    @relation(fields: [category_id], references: [id])
+  sub_category SubCategory @relation(fields: [sub_category_id], references: [id])
+  // order_items OrderItem[]
+  wishlists    Wishlist[]
+  orderItems   OrderItem[]
+}
+
+// region WISHLIST
+model Wishlist {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  product_id Int
+  created_at DateTime @default(now())
+
+  customer Customer @relation(fields: [user_id], references: [id])
+  product  Product  @relation(fields: [product_id], references: [id])
+
+  @@unique([user_id, product_id]) // prevent the duplicate wishlist entry
+}
+
+// region ORDER
+model Order {
+  id                  Int         @id @default(autoincrement())
+  customer_id         Int
+  shipping_address_id Int
+  total_amount        Decimal     @db.Decimal(10, 2)
+  status              OrderStatus @default(pending)
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+
+  customer         Customer       @relation(fields: [customer_id], references: [id])
+  shipping_address Address        @relation(fields: [shipping_address_id], references: [id])
+  order_items      OrderItem[]
+  order_histories  OrderHistory[]
+}
+
+// region ORDER-ITEM
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  order_id   Int
+  product_id Int
+  quantity   Int
+  unit_price Decimal  @db.Decimal(10, 2)
+  created_at DateTime @default(now())
+
+  order   Order   @relation(fields: [order_id], references: [id])
+  product Product @relation(fields: [product_id], references: [id])
+}
+
+// region ORDER-HISTORY
+model OrderHistory {
+  id         Int         @id @default(autoincrement())
+  order_id   Int
+  status     OrderStatus
+  note       String?
+  created_at DateTime    @default(now())
+
+  order Order @relation(fields: [order_id], references: [id])
 }
