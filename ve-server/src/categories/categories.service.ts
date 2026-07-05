@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateCategoryDto } from '../dto/create-category.dto';
+import { CreateCategoryDto } from './dto/create-category.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -13,6 +13,11 @@ export class CategoriesService {
      */
     // region Create Category
     async createCategory(dto: CreateCategoryDto) {
+        const categoryExists = await this.prisma.category.findFirst({ where: { name: dto.name } });
+        if (categoryExists) {
+            throw new BadRequestException('Category already exists');
+        }
+
         return this.prisma.category.create({
             data: {
                 name: dto.name,
