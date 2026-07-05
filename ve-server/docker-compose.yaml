@@ -1,10 +1,16 @@
 services:
   app:
-    build: .
+    build: 
+      context: .
+      target: builder
+    command: pnpm run start:dev
     ports:
       - '3000:3000'
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/velina_elite_db?schema=public
+    volumes:
+      - .:/app
+      - /app/node_modules
     restart: always
     depends_on:
       db:
