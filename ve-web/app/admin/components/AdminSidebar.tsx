@@ -13,6 +13,8 @@ import {
   Settings,
   ChevronLeft,
   Sparkles,
+  Layers,
+  List,
 } from "lucide-react";
 
 const BRAND_LOGO = "/1776256116755-removebg-preview.png";
@@ -20,6 +22,8 @@ const BRAND_LOGO = "/1776256116755-removebg-preview.png";
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard, exact: true },
   { label: "Products", href: "/admin/products", icon: Package },
+  { label: "Categories", href: "/admin/categories", icon: Layers },
+  { label: "Sub-Categories", href: "/admin/sub-categories", icon: List },
   { label: "Orders", href: "/admin/orders", icon: ShoppingBag },
   { label: "Customers", href: "/admin/customers", icon: Users },
   { label: "Promotions", href: "/admin/promotions", icon: Tag },

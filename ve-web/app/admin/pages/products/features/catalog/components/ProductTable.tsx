@@ -1,30 +1,38 @@
 import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
-import type { AdminProduct } from "../hooks/products.data";
+import { Product } from "@/types/product";
+import { Category } from "@/types/category";
 
 const statusStyles = {
   active: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400",
-  "low-stock": "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
-  "out-of-stock": "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400",
+  draft: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
+  inactive: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400",
 };
 
 const statusLabels = {
   active: "Active",
-  "low-stock": "Low Stock",
-  "out-of-stock": "Out of Stock",
+  draft: "Draft",
+  inactive: "Inactive",
 };
 
 type ProductTableProps = {
-  products: AdminProduct[];
+  products: Product[];
+  categories: Category[];
+  onEdit: (product: Product) => void;
+  onDelete: (id: number) => void;
 };
 
-export default function ProductTable({ products }: ProductTableProps) {
+export default function ProductTable({ products, categories, onEdit, onDelete }: ProductTableProps) {
   if (products.length === 0) {
     return (
       <div className="rounded-2xl border border-border bg-white dark:bg-zinc-900/50 p-12 text-center shadow-sm">
-        <p className="text-sm font-bold text-muted">No products match your filters.</p>
+        <p className="text-sm font-bold text-muted">No products found.</p>
       </div>
     );
   }
+
+  const getCategoryName = (id: number) => {
+    return categories.find(c => c.id === id)?.name || "Unknown";
+  };
 
   return (
     <div className="rounded-2xl border border-border bg-white dark:bg-zinc-900/50 shadow-sm overflow-hidden">
@@ -32,10 +40,10 @@ export default function ProductTable({ products }: ProductTableProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-surface/50">
-              {["Product", "Category", "Brand", "Price", "Stock", "Status", ""].map((col) => (
+              {["Image", "Product", "Category", "Price", "Stock", "Status", "Actions"].map((col) => (
                 <th
-                  key={col || "actions"}
-                  className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-subtle"
+                  key={col}
+                  className={`px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-subtle ${col === 'Actions' ? 'text-right' : ''}`}
                 >
                   {col}
                 </th>
@@ -49,41 +57,49 @@ export default function ProductTable({ products }: ProductTableProps) {
                 className="border-b border-border-subtle last:border-0 hover:bg-surface/60 transition-colors"
               >
                 <td className="px-5 py-4">
+                  {product.images_url && product.images_url.length > 0 ? (
+                    <img 
+                      src={product.images_url[0]} 
+                      alt={product.title} 
+                      className="w-10 h-10 rounded-lg object-cover border border-border"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-surface flex items-center justify-center border border-border">
+                      <span className="text-[10px] text-muted font-bold">N/A</span>
+                    </div>
+                  )}
+                </td>
+                <td className="px-5 py-4">
                   <div>
-                    <p className="font-bold text-foreground">{product.name}</p>
-                    <p className="text-[10px] font-bold text-muted-subtle mt-0.5">{product.id}</p>
+                    <p className="font-bold text-foreground">{product.title}</p>
+                    <p className="text-[10px] font-bold text-muted-subtle mt-0.5">ID: {product.id}</p>
                   </div>
                 </td>
-                <td className="px-5 py-4 text-muted">{product.category}</td>
-                <td className="px-5 py-4 font-medium text-foreground">{product.brand}</td>
-                <td className="px-5 py-4 font-bold text-velina-rose">{product.price}</td>
-                <td className="px-5 py-4 font-medium">{product.stock}</td>
+                <td className="px-5 py-4 text-muted">{getCategoryName(product.category_id)}</td>
+                <td className="px-5 py-4 font-bold text-velina-rose">${Number(product.price).toFixed(2)}</td>
+                <td className="px-5 py-4 font-medium">{product.stock_quantity}</td>
                 <td className="px-5 py-4">
                   <span
-                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${statusStyles[product.status]}`}
+                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${statusStyles[product.status] || statusStyles.draft}`}
                   >
-                    {statusLabels[product.status]}
+                    {statusLabels[product.status] || "Unknown"}
                   </span>
                 </td>
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center justify-end gap-1">
                     <button
+                      onClick={() => onEdit(product)}
                       aria-label="Edit product"
                       className="rounded-lg p-1.5 text-muted hover:bg-surface-2 hover:text-velina-rose transition-colors"
                     >
                       <Edit size={14} />
                     </button>
                     <button
+                      onClick={() => onDelete(product.id)}
                       aria-label="Delete product"
                       className="rounded-lg p-1.5 text-muted hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950 transition-colors"
                     >
                       <Trash2 size={14} />
-                    </button>
-                    <button
-                      aria-label="More options"
-                      className="rounded-lg p-1.5 text-muted hover:bg-surface-2 transition-colors"
-                    >
-                      <MoreHorizontal size={14} />
                     </button>
                   </div>
                 </td>
