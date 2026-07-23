@@ -49,7 +49,6 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --prod --frozen-lockfile
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
-COPY prisma.config.ts ./
 RUN pnpm prisma generate
 
 EXPOSE 3000
