@@ -1,23 +1,51 @@
 PROJECT_NAME := ve-server
-DOCKERFILE := Dockerfile
-PORT := 3000
+PORT         := 3000
 
-.PHONY: build run stop rm rmi logs up down rebuild
+.PHONY: up down rebuild logs db-up db-down run-local run-neon compose-prod up-prod migrate-local migrate-prod
 
-build:
-	docker-compose build
-
+# ─── Local (hot reload + Docker DB) ──────────────────────────
 up:
-	docker-compose up -d
+	ENV_FILE=.env.local docker-compose up -d
 
 down:
 	docker-compose down
 
-rm:
-	docker rm $(PROJECT_NAME)
-
-rmi:
-	docker rmi $(PROJECT_NAME)
+rebuild:
+	ENV_FILE=.env.local docker-compose up -d --build
 
 logs:
-	docker logs -f $(PROJECT_NAME)
+	docker-compose logs -f app
+
+# ─── DB Only (for Local Host running) ──────────────────────────
+db-up:
+	docker-compose up -d db
+
+db-down:
+	docker-compose stop db
+
+# ─── Host Machine Running ─────────────────────────────────────
+run-local:
+	pnpm run start:local
+
+run-neon:
+	pnpm run start:neon
+
+# ─── Production (Neon DB) ─────────────────────────────────────
+compose-prod:
+	docker-compose -f docker-compose.prod.yaml up -d --build
+
+up-prod:
+	docker build --target production -t $(PROJECT_NAME):prod .
+	docker rm -f $(PROJECT_NAME) 2>/dev/null || true
+	docker run -d \
+		--name $(PROJECT_NAME) \
+		--env-file .env.production \
+		-p $(PORT):$(PORT) \
+		$(PROJECT_NAME):prod
+
+# ─── Migrations ───────────────────────────────────────────────
+migrate-local:
+	pnpm dotenv -e .env.local -- pnpm prisma migrate dev
+
+migrate-prod:
+	pnpm dotenv -e .env.production -- pnpm prisma migrate deploy

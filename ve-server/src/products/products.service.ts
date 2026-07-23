@@ -14,9 +14,10 @@ export class ProductsService {
    */
   // region Create Product
   async createProduct(dto: CreateProductDto) {
+    const { images, ...data } = dto;
     return this.prisma.product.create({
       data: {
-        ...dto,
+        ...data,
         description: dto.description || '',
       },
       include: {

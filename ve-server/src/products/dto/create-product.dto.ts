@@ -9,7 +9,7 @@ import {
   IsArray,
   IsEnum,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export enum ProductStatus {
   draft = 'draft',
@@ -41,9 +41,20 @@ export class CreateProductDto {
 
   @ApiPropertyOptional({ example: ['https://img1.jpg', 'https://img2.jpg'] })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined) return value;
+    return Array.isArray(value) ? value : [value];
+  })
   @IsArray()
   @IsString({ each: true })
   images_url?: string[];
+
+  // This field is whitelisted so the global ValidationPipe (forbidNonWhitelisted: true)
+  // doesn't reject multipart requests. The actual file data is extracted via @UploadedFiles()
+  // by multer and this field is never used from the DTO body.
+  @IsOptional()
+  images?: any;
+
 
   @ApiPropertyOptional({ enum: ProductStatus, default: ProductStatus.draft })
   @IsOptional()
