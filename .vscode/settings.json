@@ -1,0 +1,5 @@
+{
+    "localAgent.autoApplyFileChanges": true,
+    "localAgent.agentMode": "agent",
+    "localAgent.approvalMode": "fullAccessSession"
+}
