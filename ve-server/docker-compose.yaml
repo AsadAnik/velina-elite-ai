@@ -2,21 +2,22 @@ services:
   app:
     build:
       context: .
-      target: ${BUILD_TARGET:-builder}
-    command: ${APP_COMMAND:-pnpm run start:dev}
+      target: builder
+    command: pnpm run start:dev
     ports:
-      - '${PORT:-3000}:3000'
+      - '3000:3000'
     env_file:
-      - ${ENV_FILE:-.env.local}
+      - .env.local
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/velina_elite_db?schema=public
     volumes:
       - .:/app
       - /app/node_modules
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/velina_elite_db?schema=public
     restart: always
     depends_on:
       db:
-        condition: ${DB_CONDITION:-service_healthy}
+        condition: service_healthy
 
   db:
     image: postgres:16-alpine

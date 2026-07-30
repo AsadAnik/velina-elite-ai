@@ -23,7 +23,7 @@ db-up:
 db-down:
 	docker-compose stop db
 
-# ─── Host Machine Running ─────────────────────────────────────
+# ─── Host Machine Running ────────────────────────────────────
 run-local:
 	pnpm run start:local
 
