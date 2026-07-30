@@ -24,17 +24,12 @@ export default function AdminShell({ title, subtitle, children }: AdminShellProp
         />
       )}
 
-      <div
-        className={`fixed inset-y-0 left-0 z-40 transition-transform duration-300 lg:translate-x-0 ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
-      >
-        <AdminSidebar
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed((prev) => !prev)}
-          onNavigate={() => setMobileOpen(false)}
-        />
-      </div>
+      <AdminSidebar
+        collapsed={sidebarCollapsed}
+        mobileOpen={mobileOpen}
+        onToggle={() => setSidebarCollapsed((prev) => !prev)}
+        onNavigate={() => setMobileOpen(false)}
+      />
 
       <div
         className={`transition-all duration-300 ${

@@ -33,8 +33,12 @@ export class CategoriesService {
     async findAllCategories() {
         return this.prisma.category.findMany({
             include: {
-                sub_categories: true,
-                products: true,
+                sub_categories: {
+                    include: {
+                        _count: { select: { products: { where: { status: 'active' } } } },
+                    },
+                },
+                _count: { select: { products: { where: { status: 'active' } } } },
             }
         });
     }

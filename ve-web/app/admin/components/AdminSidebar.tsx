@@ -33,11 +33,17 @@ const navItems = [
 
 type AdminSidebarProps = {
   collapsed: boolean;
+  mobileOpen: boolean;
   onToggle: () => void;
   onNavigate?: () => void;
 };
 
-export default function AdminSidebar({ collapsed, onToggle, onNavigate }: AdminSidebarProps) {
+export default function AdminSidebar({
+  collapsed,
+  mobileOpen,
+  onToggle,
+  onNavigate,
+}: AdminSidebarProps) {
   const pathname = usePathname();
 
   const isActive = (href: string, exact?: boolean) =>
@@ -45,8 +51,10 @@ export default function AdminSidebar({ collapsed, onToggle, onNavigate }: AdminS
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border bg-white dark:bg-zinc-950 transition-all duration-300 w-[85vw] max-w-[280px] sm:w-64 ${
-        collapsed ? "w-18" : "w-[85vw] max-w-[280px] sm:w-64"
+      className={`fixed inset-y-0 left-0 z-40 flex w-[85vw] max-w-[280px] flex-col border-r border-border bg-white transition-all duration-300 dark:bg-zinc-950 sm:w-64 ${
+        mobileOpen ? "translate-x-0" : "-translate-x-full"
+      } lg:translate-x-0 ${
+        collapsed ? "lg:w-18" : "lg:w-64"
       }`}
     >
       <div className="flex h-16 items-center justify-between border-b border-border px-4">

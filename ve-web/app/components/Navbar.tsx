@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Search, Heart, User, ShoppingBag, Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import { useStore } from "@/lib/store";
-import { categories } from "@/lib/data";
+import { fetchApi } from "@/lib/api";
+import { Category } from "@/types/category";
 import ThemeToggle from "./ThemeToggle";
 
 const BRAND_LOGO = "/1776256116755-removebg-preview.png";
@@ -15,6 +16,7 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileOpenCat, setMobileOpenCat] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const dropdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { cartCount, openCartDrawer } = useStore();
 
@@ -39,6 +41,8 @@ export default function Navbar() {
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [isMobileMenuOpen]);
+
+  useEffect(() => { fetchApi<Category[]>("/categories").then(setCategories).catch(() => setCategories([])); }, []);
 
   return (
     <>
@@ -158,53 +162,53 @@ export default function Navbar() {
             <div className="flex items-center">
               {categories.map((cat) => (
                 <div
-                  key={cat.slug}
+                  key={cat.id}
                   className="relative"
-                  onMouseEnter={() => handleMouseEnter(cat.slug)}
+                  onMouseEnter={() => handleMouseEnter(String(cat.id))}
                   onMouseLeave={handleMouseLeave}
                 >
                   <Link
-                    href={`/category/${cat.slug}`}
-                    className={`flex items-center gap-1 px-4 py-3 text-zinc-700 dark:text-zinc-300 hover:text-velina-rose transition-colors relative group ${activeDropdown === cat.slug ? "text-velina-rose" : ""
+                    href={`/category/${cat.id}`}
+                    className={`flex items-center gap-1 px-4 py-3 text-zinc-700 dark:text-zinc-300 hover:text-velina-rose transition-colors relative group ${activeDropdown === String(cat.id) ? "text-velina-rose" : ""
                       }`}
                   >
                     {cat.name}
                     <ChevronDown
                       size={12}
-                      className={`transition-transform duration-200 ${activeDropdown === cat.slug ? "rotate-180" : ""
+                      className={`transition-transform duration-200 ${activeDropdown === String(cat.id) ? "rotate-180" : ""
                         }`}
                     />
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-velina-rose transition-all group-hover:w-full" />
                   </Link>
 
                   {/* Mega dropdown */}
-                  {activeDropdown === cat.slug && (
+                  {activeDropdown === String(cat.id) && (
                     <div
                       className="absolute top-full left-0 mt-0 w-72 bg-white dark:bg-zinc-900 shadow-xl dark:shadow-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-b-2xl z-50 p-4"
-                      onMouseEnter={() => handleMouseEnter(cat.slug)}
+                      onMouseEnter={() => handleMouseEnter(String(cat.id))}
                       onMouseLeave={handleMouseLeave}
                     >
                       <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 px-1">
                         {cat.name} Categories
                       </p>
                       <div className="grid grid-cols-2 gap-0.5">
-                        {cat.subcategories.map((sub) => (
+                        {(cat.sub_categories ?? []).map((sub) => (
                           <Link
-                            key={sub.slug}
-                            href={`/category/${cat.slug}/${sub.slug}`}
+                            key={sub.id}
+                            href={`/category/${cat.id}/${sub.id}`}
                             className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-velina-peach/30 dark:hover:bg-velina-rose/10 group/sub transition-colors"
                           >
                             <span className="text-xs text-zinc-700 dark:text-zinc-300 group-hover/sub:text-velina-rose font-medium transition-colors">
                               {sub.name}
                             </span>
                             <span className="text-[10px] text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded-full ml-1 shrink-0">
-                              {sub.count}
+                              {sub._count?.products ?? 0}
                             </span>
                           </Link>
                         ))}
                       </div>
                       <Link
-                        href={`/category/${cat.slug}`}
+                        href={`/category/${cat.id}`}
                         className="mt-3 flex items-center gap-1 text-velina-rose text-xs font-bold px-3 hover:gap-2 transition-all"
                       >
                         View all {cat.name} <ChevronRight size={13} />
@@ -268,30 +272,30 @@ export default function Navbar() {
         {/* Drawer nav */}
         <div className="flex-1 overflow-y-auto py-2">
           {categories.map((cat) => (
-            <div key={cat.slug} className="border-b border-zinc-50 dark:border-zinc-900">
+            <div key={cat.id} className="border-b border-zinc-50 dark:border-zinc-900">
               <button
                 onClick={() =>
-                  setMobileOpenCat(mobileOpenCat === cat.slug ? null : cat.slug)
+                  setMobileOpenCat(mobileOpenCat === String(cat.id) ? null : String(cat.id))
                 }
                 className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-bold text-zinc-800 dark:text-zinc-200 hover:text-velina-rose transition-colors"
               >
                 {cat.name}
                 <ChevronDown
                   size={16}
-                  className={`text-zinc-400 transition-transform duration-200 ${mobileOpenCat === cat.slug ? "rotate-180" : ""
+                  className={`text-zinc-400 transition-transform duration-200 ${mobileOpenCat === String(cat.id) ? "rotate-180" : ""
                     }`}
                 />
               </button>
 
               <div
-                className={`overflow-hidden transition-all duration-300 ${mobileOpenCat === cat.slug ? "max-h-[400px]" : "max-h-0"
+                className={`overflow-hidden transition-all duration-300 ${mobileOpenCat === String(cat.id) ? "max-h-[400px]" : "max-h-0"
                   }`}
               >
                 <div className="pb-2 px-4 grid grid-cols-2 gap-1">
-                  {cat.subcategories.map((sub) => (
+                  {(cat.sub_categories ?? []).map((sub) => (
                     <Link
-                      key={sub.slug}
-                      href={`/category/${cat.slug}/${sub.slug}`}
+                      key={sub.id}
+                      href={`/category/${cat.id}/${sub.id}`}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center justify-between px-3 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-900 hover:bg-velina-peach/30 dark:hover:bg-velina-rose/10 transition-colors"
                     >
@@ -299,13 +303,13 @@ export default function Navbar() {
                         {sub.name}
                       </span>
                       <span className="text-[9px] text-zinc-400 shrink-0 ml-1">
-                        {sub.count}
+                        {sub._count?.products ?? 0}
                       </span>
                     </Link>
                   ))}
                 </div>
                 <Link
-                  href={`/category/${cat.slug}`}
+                  href={`/category/${cat.id}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="mx-5 mb-3 flex items-center gap-1 text-velina-rose text-xs font-bold"
                 >

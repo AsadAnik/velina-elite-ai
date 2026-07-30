@@ -1,10 +1,11 @@
-import { Body, Controller, Param, Post, Put, Patch, Get, Delete, Query, UseInterceptors, UploadedFiles, BadRequestException, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Param, Post, Put, Patch, Get, Delete, Query, UseInterceptors, UploadedFiles, BadRequestException, UsePipes, ValidationPipe, ParseIntPipe } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ProductsService } from './products.service';
 import { CreateProductDto, ProductStatus } from 'src/products/dto/create-product.dto';
-import { ApiOperation, ApiTags, ApiConsumes } from '@nestjs/swagger';
+import { ApiOperation, ApiTags, ApiConsumes, ApiQuery } from '@nestjs/swagger';
 import { UpdateProductDto } from 'src/products/dto/update-product.dto';
+import { ProductsQueryDto } from './dto/products-query.dto';
 
 @ApiTags('products')
 @Controller('products')
@@ -45,7 +46,7 @@ export class ProductsController {
     @ApiConsumes('multipart/form-data', 'application/json')
     @UseInterceptors(FilesInterceptor('images'))
     @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true }))
-    async update(@Param('id') id: number, @Body() dto: UpdateProductDto, @UploadedFiles() files?: Array<Express.Multer.File>) {
+    async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto, @UploadedFiles() files?: Array<Express.Multer.File>) {
         if (dto.images_url !== undefined || (files && files.length > 0)) {
             const existingUrls = Array.isArray(dto.images_url) ? dto.images_url : (dto.images_url ? [dto.images_url as string] : []);
             const totalImagesCount = existingUrls.length + (files ? files.length : 0);
@@ -71,25 +72,30 @@ export class ProductsController {
 
     @Patch('status/:id')
     @ApiOperation({ summary: 'Update Product Status' })
-    updateProductStatus(@Param() id: number, @Body('status') status: ProductStatus) {
+    updateProductStatus(@Param('id', ParseIntPipe) id: number, @Body('status') status: ProductStatus) {
         return this.productsService.updateProductStatus(id, status);
     }
 
     @Get()
-    @ApiOperation({ summary: 'Find All Products' })
-    findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
-        return this.productsService.findAll(page, limit);
+    @ApiOperation({ summary: 'List products, optionally filtered by category, sub-category, and status' })
+    @ApiQuery({ name: 'page', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'category_id', required: false, type: Number })
+    @ApiQuery({ name: 'sub_category_id', required: false, type: Number })
+    @ApiQuery({ name: 'status', required: false, enum: ProductStatus })
+    findAll(@Query() query: ProductsQueryDto) {
+        return this.productsService.findAll(query);
     }
 
     @Get(':id')
-    @ApiOperation({ summary: 'Find One Product' })
-    findOne(@Param() id: number) {
+    @ApiOperation({ summary: 'Get product details by ID, including category and sub-category' })
+    findOne(@Param('id', ParseIntPipe) id: number) {
         return this.productsService.findOne(id);
     }
 
     @Delete(':id')
     @ApiOperation({ summary: 'Delete Product' })
-    delete(@Param() id: number) {
+    delete(@Param('id', ParseIntPipe) id: number) {
         return this.productsService.remove(id);
     }
 }

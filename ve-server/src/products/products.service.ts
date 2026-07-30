@@ -4,6 +4,7 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateProductDto, ProductStatus } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { buildPricingSummary } from './pricing.util';
+import { ProductsQueryDto } from './dto/products-query.dto';
 
 @Injectable()
 export class ProductsService {
@@ -136,20 +137,32 @@ export class ProductsService {
    * @returns Object
    */
   // region Find All Products
-  async findAll(page: number = 1, limit: number = 10) {
+  async findAll({
+    page = 1,
+    limit = 10,
+    category_id,
+    sub_category_id,
+    status,
+  }: ProductsQueryDto = {}) {
     const skip = (page - 1) * limit;
+    const where = {
+      ...(category_id ? { category_id } : {}),
+      ...(sub_category_id ? { sub_category_id } : {}),
+      ...(status ? { status } : {}),
+    };
 
     const [products, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         skip,
         take: limit,
+        where,
         include: {
           category: true,
           sub_category: true
         },
         orderBy: { created_at: 'desc' }
       }),
-      this.prisma.product.count()
+      this.prisma.product.count({ where })
     ]);
 
     const totalPages = Math.ceil(total / limit);

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, ParseIntPipe } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
@@ -15,14 +15,14 @@ export class CategoriesController {
     }
 
     @Get()
-    @ApiOperation({ summary: 'Find All Categories' })
+    @ApiOperation({ summary: 'List categories with their sub-categories and active-product counts' })
     findAllCategories() {
         return this.categoriesService.findAllCategories();
     }
 
     @Get(':id')
     @ApiOperation({ summary: 'Find One Category' })
-    findOneCategory(@Param() id: number) {
+    findOneCategory(@Param('id', ParseIntPipe) id: number) {
         return this.categoriesService.findOneCategory(id);
     }
 
