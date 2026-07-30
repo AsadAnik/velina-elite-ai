@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { Toaster } from "sonner";
 
 type Theme = "light" | "dark";
 
@@ -49,6 +50,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
+      <Toaster 
+        position="top-right" 
+        theme={theme === "dark" ? "dark" : "light"}
+        richColors
+        closeButton
+      />
     </ThemeContext.Provider>
   );
 }

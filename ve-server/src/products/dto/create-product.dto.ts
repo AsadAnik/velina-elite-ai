@@ -17,6 +17,11 @@ export enum ProductStatus {
   inactive = 'inactive',
 };
 
+export enum ProductSizeUnit {
+  ml = 'ml',
+  gm = 'gm',
+}
+
 export class CreateProductDto {
   @ApiProperty({ example: 'Nike Air Max' })
   @IsString()
@@ -27,11 +32,40 @@ export class CreateProductDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ example: 99 })
+  @ApiPropertyOptional({ example: 99 })
+  @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   @Type(() => Number)
-  price: number;
+  price?: number;
+
+  @ApiProperty({ example: 80 })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsPositive()
+  @Type(() => Number)
+  regular_price: number;
+
+  @ApiProperty({ example: 100 })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsPositive()
+  @Type(() => Number)
+  mrp_price: number;
+
+  @ApiPropertyOptional({ example: 120 })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Type(() => Number)
+  size?: number;
+
+  @ApiPropertyOptional({ enum: ProductSizeUnit, default: ProductSizeUnit.gm })
+  @IsOptional()
+  @IsEnum(ProductSizeUnit)
+  size_unit?: ProductSizeUnit;
+
+  @ApiPropertyOptional({ example: '৳', default: '৳' })
+  @IsOptional()
+  @IsString()
+  currency_symbol?: string;
 
   @ApiProperty({ example: 50 })
   @IsInt()

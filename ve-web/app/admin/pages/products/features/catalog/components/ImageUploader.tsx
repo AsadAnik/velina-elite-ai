@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Plus, X, UploadCloud, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
+import { toast } from "sonner";
 
 interface ImageUploaderProps {
   imagesUrl: string[];
@@ -75,6 +76,21 @@ export default function ImageUploader({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
+      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit matching Cloudinary backend
+      
+      // Check file sizes
+      const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE);
+      if (oversizedFiles.length > 0) {
+        toast.error(
+          `File size too large. Maximum is 10MB. Got ${(oversizedFiles[0].size / (1024 * 1024)).toFixed(2)}MB.`
+        );
+        // Reset input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
+      }
+      
       const availableSlots = maxImages - totalCount;
       const filesToAdd = files.slice(0, availableSlots);
       if (filesToAdd.length > 0) {

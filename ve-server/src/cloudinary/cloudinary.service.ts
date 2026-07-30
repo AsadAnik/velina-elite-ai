@@ -23,4 +23,23 @@ export class CloudinaryService {
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
   }
+
+  async deleteFile(imageUrl: string): Promise<void> {
+    try {
+      // Extract public_id from Cloudinary URL
+      // URLs are typically: https://res.cloudinary.com/<cloud_name>/image/upload/v<version>/<public_id>.<format>
+      const urlParts = imageUrl.split('/');
+      const filename = urlParts[urlParts.length - 1]; // e.g., "abc123.jpg"
+      const publicId = `velina-elite/${filename.split('.')[0]}`; // Reconstruct with folder
+
+      await cloudinary.uploader.destroy(publicId);
+    } catch (error) {
+      console.error(`Failed to delete image from Cloudinary: ${imageUrl}`, error);
+      // Don't throw - log and continue to allow product deletion even if Cloudinary delete fails
+    }
+  }
+
+  async deleteMultipleFiles(imageUrls: string[]): Promise<void> {
+    await Promise.all(imageUrls.map((url) => this.deleteFile(url)));
+  }
 }

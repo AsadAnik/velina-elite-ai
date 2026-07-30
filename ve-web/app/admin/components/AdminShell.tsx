@@ -32,12 +32,13 @@ export default function AdminShell({ title, subtitle, children }: AdminShellProp
         <AdminSidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed((prev) => !prev)}
+          onNavigate={() => setMobileOpen(false)}
         />
       </div>
 
       <div
         className={`transition-all duration-300 ${
-          sidebarCollapsed ? "lg:pl-[72px]" : "lg:pl-64"
+          sidebarCollapsed ? "lg:pl-18" : "lg:pl-64"
         }`}
       >
         <AdminHeader

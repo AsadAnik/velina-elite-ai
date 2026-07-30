@@ -19,6 +19,11 @@ enum ProductStatus {
   inactive
 }
 
+enum ProductSizeUnit {
+  ml
+  gm
+}
+
 enum OrderStatus {
   pending
   confirmed
@@ -100,17 +105,24 @@ model SubCategory {
 
 // region PRODUCT
 model Product {
-  id              Int           @id @default(autoincrement())
-  title           String
-  description     String
-  price           Decimal
-  stock_quantity  Int           @default(0)
-  images_url      String[]
-  status          ProductStatus @default(draft)
-  category_id     Int
-  sub_category_id Int
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @updatedAt
+  id               Int              @id @default(autoincrement())
+  title            String
+  description      String
+  price            Decimal          @default(0)
+  regular_price    Decimal          @default(0) @db.Decimal(10, 2)
+  mrp_price        Decimal          @default(0) @db.Decimal(10, 2)
+  save_amount      Decimal          @default(0) @db.Decimal(10, 2)
+  save_percentage  Int              @default(0)
+  currency_symbol  String           @default("৳")
+  size             Decimal?         @db.Decimal(10, 2)
+  size_unit        ProductSizeUnit?
+  stock_quantity   Int              @default(0)
+  images_url       String[]
+  status           ProductStatus    @default(draft)
+  category_id      Int
+  sub_category_id  Int
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
 
   category     Category    @relation(fields: [category_id], references: [id])
   sub_category SubCategory @relation(fields: [sub_category_id], references: [id])
