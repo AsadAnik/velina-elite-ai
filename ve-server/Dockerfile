@@ -4,6 +4,10 @@ WORKDIR /app
 RUN npm install -g pnpm@11.5.0
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# `postinstall` runs `prisma generate`, so the schema and Prisma config must
+# exist before dependencies are installed.
+COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
 RUN pnpm install --frozen-lockfile
 
 COPY . .
