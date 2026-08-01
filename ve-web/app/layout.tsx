@@ -4,6 +4,7 @@ import "./globals.css";
 import { StoreProvider } from "@/lib/store";
 import { Providers } from "./providers";
 import WhatsAppButton from "./components/WhatsAppButton";
+import { Analytics } from "@vercel/analytics/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,6 +51,7 @@ export default function RootLayout({
             `,
           }}
         />
+        <Analytics />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>
