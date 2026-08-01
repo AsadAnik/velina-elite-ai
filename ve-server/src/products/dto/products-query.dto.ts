@@ -19,14 +19,20 @@ export class ProductsQueryDto {
   @Max(100)
   limit?: number;
 
-  @ApiPropertyOptional({ example: 1, description: 'Only return products in this category.' })
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'Only return products in this category.',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   category_id?: number;
 
-  @ApiPropertyOptional({ example: 3, description: 'Only return products in this sub-category.' })
+  @ApiPropertyOptional({
+    example: 3,
+    description: 'Only return products in this sub-category.',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

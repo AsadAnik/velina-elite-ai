@@ -1,6 +1,7 @@
 # Build Stage
 FROM node:26-alpine AS builder
 WORKDIR /app
+ENV CI=true
 RUN npm install -g pnpm@11.5.0
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -17,8 +18,8 @@ RUN pnpm build
 # Production Stage
 FROM node:26-alpine AS production
 WORKDIR /app
+ENV CI=true NODE_ENV=production
 RUN npm install -g pnpm@11.5.0
-ENV NODE_ENV=production
 
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml

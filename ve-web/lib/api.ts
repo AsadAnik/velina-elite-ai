@@ -9,12 +9,24 @@ const apiClient = axios.create({
   },
 });
 
+apiClient.interceptors.request.use((config) => {
+  if (typeof window === 'undefined') {
+    return config;
+  }
+
+  const token = localStorage.getItem('velina_admin_token');
+  if (token) {
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
 export async function fetchApi<T>(endpoint: string, options: AxiosRequestConfig = {}): Promise<T> {
   try {
-    // When data is FormData, we must explicitly set Content-Type to null so that
-    // axios drops the instance-level default ("application/json") and lets the
-    // browser set the correct multipart/form-data boundary automatically.
     const headers: Record<string, string | null> = { ...(options.headers as Record<string, string>) };
+
     if (options.data instanceof FormData) {
       headers["Content-Type"] = null;
     }
@@ -25,12 +37,22 @@ export async function fetchApi<T>(endpoint: string, options: AxiosRequestConfig 
       headers,
     });
     return response.data;
-  } catch (error: any) {
-    if (error.response) {
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response) {
       const msg = error.response.data?.message;
       const text = Array.isArray(msg) ? msg.join(', ') : (msg || error.response.data?.error || "An error occurred");
+
+      if (error.response.status === 401 || error.response.status === 403) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('velina_admin_token');
+          localStorage.removeItem('velina_admin_user');
+          window.location.href = '/admin/login';
+        }
+      }
+
       throw new Error(text);
     }
+
     throw error;
   }
 }

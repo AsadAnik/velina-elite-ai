@@ -15,7 +15,7 @@ export enum ProductStatus {
   draft = 'draft',
   active = 'active',
   inactive = 'inactive',
-};
+}
 
 export enum ProductSizeUnit {
   ml = 'ml',
@@ -88,7 +88,6 @@ export class CreateProductDto {
   // by multer and this field is never used from the DTO body.
   @IsOptional()
   images?: any;
-
 
   @ApiPropertyOptional({ enum: ProductStatus, default: ProductStatus.draft })
   @IsOptional()

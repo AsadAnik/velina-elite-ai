@@ -10,7 +10,7 @@ import { ProductsQueryDto } from './dto/products-query.dto';
 export class ProductsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cloudinaryService: CloudinaryService
+    private readonly cloudinaryService: CloudinaryService,
   ) { }
 
   /**
@@ -39,7 +39,7 @@ export class ProductsService {
       include: {
         category: true,
         sub_category: true,
-      }
+      },
     });
   }
 
@@ -54,24 +54,35 @@ export class ProductsService {
       where: { id },
       include: {
         category: true,
-        sub_category: true
-      }
+        sub_category: true,
+      },
     });
 
     if (!product) throw new NotFoundException(`Product #${id} not found`);
 
     // Detect images that were removed and delete them from Cloudinary
     if (dto.images_url !== undefined) {
-      const newImageUrls = Array.isArray(dto.images_url) ? dto.images_url : (dto.images_url ? [dto.images_url as string] : []);
+      const newImageUrls = Array.isArray(dto.images_url)
+        ? dto.images_url
+        : dto.images_url
+          ? [dto.images_url as string]
+          : [];
       const oldImageUrls = product.images_url || [];
-      
-      const removedImages = oldImageUrls.filter(url => !newImageUrls.includes(url));
+
+      const removedImages = oldImageUrls.filter(
+        (url) => !newImageUrls.includes(url),
+      );
       if (removedImages.length > 0) {
         await this.cloudinaryService.deleteMultipleFiles(removedImages);
       }
     }
 
-    const regularPrice = dto.regular_price ?? dto.price ?? product.regular_price ?? product.price ?? 0;
+    const regularPrice =
+      dto.regular_price ??
+      dto.price ??
+      product.regular_price ??
+      product.price ??
+      0;
     const mrpPrice = dto.mrp_price ?? product.mrp_price ?? regularPrice;
     const pricingSummary = buildPricingSummary({
       regularPrice: Number(regularPrice),
@@ -91,8 +102,8 @@ export class ProductsService {
       },
       include: {
         category: true,
-        sub_category: true
-      }
+        sub_category: true,
+      },
     });
   }
 
@@ -106,11 +117,10 @@ export class ProductsService {
     await this.findOne(id);
     await this.prisma.product.update({
       where: { id },
-      data: { status }
+      data: { status },
     });
     return { message: `Product #${id} is updated successfully!` };
   }
-
 
   /**
    * FIND ONE PRODUCT SERVICE
@@ -122,8 +132,8 @@ export class ProductsService {
       where: { id },
       include: {
         category: true,
-        sub_category: true
-      }
+        sub_category: true,
+      },
     });
 
     if (!product) throw new NotFoundException(`Product #${id} not found`);
@@ -158,11 +168,11 @@ export class ProductsService {
         where,
         include: {
           category: true,
-          sub_category: true
+          sub_category: true,
         },
-        orderBy: { created_at: 'desc' }
+        orderBy: { created_at: 'desc' },
       }),
-      this.prisma.product.count({ where })
+      this.prisma.product.count({ where }),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -186,12 +196,12 @@ export class ProductsService {
   // region Remove Product
   async remove(id: number) {
     const product = await this.findOne(id);
-    
+
     // Delete all associated images from Cloudinary
     if (product.images_url && product.images_url.length > 0) {
       await this.cloudinaryService.deleteMultipleFiles(product.images_url);
     }
-    
+
     await this.prisma.product.delete({ where: { id } });
     return { message: `Product #${id} is deleted successfully!` };
   }

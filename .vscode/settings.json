@@ -1,5 +1,9 @@
 {
     "localAgent.autoApplyFileChanges": true,
     "localAgent.agentMode": "agent",
-    "localAgent.approvalMode": "fullAccessSession"
+    "localAgent.approvalMode": "fullAccessSession",
+    "eslint.enable": false,
+    "prettier.enable": false,
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {}
 }

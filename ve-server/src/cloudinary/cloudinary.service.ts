@@ -5,7 +5,9 @@ const streamifier = require('streamifier');
 
 @Injectable()
 export class CloudinaryService {
-  uploadFile(file: Express.Multer.File): Promise<UploadApiResponse | UploadApiErrorResponse> {
+  uploadFile(
+    file: Express.Multer.File,
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -34,7 +36,10 @@ export class CloudinaryService {
 
       await cloudinary.uploader.destroy(publicId);
     } catch (error) {
-      console.error(`Failed to delete image from Cloudinary: ${imageUrl}`, error);
+      console.error(
+        `Failed to delete image from Cloudinary: ${imageUrl}`,
+        error,
+      );
       // Don't throw - log and continue to allow product deletion even if Cloudinary delete fails
     }
   }

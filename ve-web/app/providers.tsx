@@ -50,8 +50,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
-      <Toaster 
-        position="top-right" 
+      <Toaster
+        position="top-right"
         theme={theme === "dark" ? "dark" : "light"}
         richColors
         closeButton

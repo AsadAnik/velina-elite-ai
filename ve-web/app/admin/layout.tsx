@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AdminAuthGuard from "./components/AdminAuthGuard";
 
 export const metadata: Metadata = {
   title: "Admin — Velina Elite BD",
@@ -6,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <AdminAuthGuard>{children}</AdminAuthGuard>;
 }

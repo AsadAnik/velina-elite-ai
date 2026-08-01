@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, Menu, Search } from "lucide-react";
+import { Bell, LogOut, Menu, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 import ThemeToggle from "@/app/components/ThemeToggle";
 
 type AdminHeaderProps = {
@@ -10,6 +11,14 @@ type AdminHeaderProps = {
 };
 
 export default function AdminHeader({ title, subtitle, onMenuClick }: AdminHeaderProps) {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem("velina_admin_token");
+    localStorage.removeItem("velina_admin_user");
+    router.replace("/");
+  };
+
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
       <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6">
@@ -52,8 +61,17 @@ export default function AdminHeader({ title, subtitle, onMenuClick }: AdminHeade
 
           <ThemeToggle />
 
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded-full border border-border bg-surface p-2 text-muted transition-colors hover:border-velina-rose/40 hover:text-velina-rose"
+            aria-label="Logout"
+          >
+            <LogOut size={17} />
+          </button>
+
           <div className="hidden sm:flex items-center gap-2.5 rounded-full border border-border bg-surface pl-1.5 pr-3 py-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-velina-rose to-velina-gold text-xs font-black text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-velina-rose to-velina-gold text-xs font-black text-white">
               VE
             </div>
             <div className="hidden lg:block">
