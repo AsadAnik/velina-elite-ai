@@ -1,15 +1,41 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService ) {}
+  constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService) { }
 
   async login(dto: LoginDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email.toLowerCase() },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (user.role !== Role.customer) {
+      throw new UnauthorizedException('Only customers can login from this route');
+    }
+
+    return this.buildAuthResponse(user);
+  }
+
+  async adminLogin(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
@@ -29,6 +55,45 @@ export class AuthService {
         'Only admin or owner role can access the admin panel',
       );
     }
+
+    return this.buildAuthResponse(user);
+  }
+
+  async register(dto: RegisterDto) {
+    if (dto.password !== dto.confirmPassword) {
+      throw new BadRequestException('Password and confirm password must match');
+    }
+
+    const normalizedEmail = dto.email.toLowerCase();
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('Email already registered');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const username = `${dto.fullName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
+
+    const user = await this.prisma.user.create({
+      data: {
+        username,
+        email: normalizedEmail,
+        password: hashedPassword,
+        role: Role.customer,
+      },
+    });
+
+    await this.prisma.customer.create({
+      data: {
+        user_id: user.id,
+        fname: dto.fullName.trim().split(/\s+/)[0] ?? dto.fullName.trim(),
+        lname: dto.fullName.trim().split(/\s+/).slice(1).join(' ') || dto.fullName.trim(),
+        phone: dto.phone ?? null,
+        gender: dto.gender ?? 'other',
+      },
+    });
 
     return this.buildAuthResponse(user);
   }

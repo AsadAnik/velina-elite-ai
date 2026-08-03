@@ -6,13 +6,17 @@ import * as bcrypt from 'bcryptjs';
 
 describe('AuthService', () => {
   let authService: AuthService;
-  let prisma: { user: { findUnique: jest.Mock } };
+  let prisma: { user: { findUnique: jest.Mock; create: jest.Mock }; customer: { create: jest.Mock } };
   let jwtService: { sign: jest.Mock };
 
   beforeEach(() => {
     prisma = {
       user: {
         findUnique: jest.fn(),
+        create: jest.fn(),
+      },
+      customer: {
+        create: jest.fn(),
       },
     };
 
@@ -26,18 +30,42 @@ describe('AuthService', () => {
     );
   });
 
-  it('should return a JWT for a valid admin user', async () => {
+  it('should return a JWT for a valid customer login', async () => {
+    const password = 'Customer.1234';
+    const hash = await bcrypt.hash(password, 10);
+
+    prisma.user.findUnique.mockResolvedValue({
+      id: 22,
+      email: 'customer@example.com',
+      role: 'customer',
+      password: hash,
+    });
+
+    const result = await authService.login({
+      email: 'customer@example.com',
+      password,
+    });
+
+    expect(result.access_token).toBe('signed-token');
+    expect(jwtService.sign).toHaveBeenCalledWith({
+      sub: 22,
+      email: 'customer@example.com',
+      role: 'customer',
+    });
+  });
+
+  it('should return a JWT for a valid admin login', async () => {
     const password = 'Velina.Admin1234';
     const hash = await bcrypt.hash(password, 10);
 
     prisma.user.findUnique.mockResolvedValue({
       id: 1,
       email: 'velinaelitebd01@gmail.com',
-      role: 'admin',
+      role: 'owner',
       password: hash,
     });
 
-    const result = await authService.login({
+    const result = await authService.adminLogin({
       email: 'velinaelitebd01@gmail.com',
       password,
     });
@@ -46,7 +74,7 @@ describe('AuthService', () => {
     expect(jwtService.sign).toHaveBeenCalledWith({
       sub: 1,
       email: 'velinaelitebd01@gmail.com',
-      role: 'admin',
+      role: 'owner',
     });
   });
 
@@ -59,7 +87,7 @@ describe('AuthService', () => {
     });
 
     await expect(
-      authService.login({
+      authService.adminLogin({
         email: 'velinaelitebd01@gmail.com',
         password: 'Velina.Admin1234',
       }),
