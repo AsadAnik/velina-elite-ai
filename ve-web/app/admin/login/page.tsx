@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Mail, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import { fetchApi } from "@/lib/api";
 
 type LoginResponse = {
@@ -20,15 +21,13 @@ export default function AdminLoginPage() {
     const [password, setPassword] = useState(""); // Velina.Admin1234
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setLoading(true);
-        setError("");
 
         try {
-            const result = await fetchApi<LoginResponse>("/auth/login", {
+            const result = await fetchApi<LoginResponse>("/auth/admin/login", {
                 method: "POST",
                 data: { email, password },
             });
@@ -39,9 +38,10 @@ export default function AdminLoginPage() {
 
             localStorage.setItem("velina_admin_token", result.access_token);
             localStorage.setItem("velina_admin_user", JSON.stringify(result.user));
+            toast.success("Admin login successful.");
             router.replace("/admin");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Admin login failed");
+            toast.error(err instanceof Error ? err.message : "Admin login failed");
         } finally {
             setLoading(false);
         }
@@ -99,12 +99,6 @@ export default function AdminLoginPage() {
                             </button>
                         </div>
                     </div>
-
-                    {error ? (
-                        <div className="rounded-2xl border border-red-400/40 bg-red-400/10 px-3 py-2 text-sm text-red-100">
-                            {error}
-                        </div>
-                    ) : null}
 
                     <button
                         type="submit"
