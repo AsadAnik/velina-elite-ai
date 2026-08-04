@@ -1,10 +1,20 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { ShoppingBag } from "lucide-react";
 import { useStore } from "@/lib/store";
 
 export default function StickyCartWidget() {
   const { openCartDrawer, cartCount, cartTotal } = useStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="fixed right-0 top-1/2 -translate-y-1/2 z-40 hidden md:block">

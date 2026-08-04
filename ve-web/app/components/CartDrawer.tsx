@@ -101,14 +101,24 @@ export default function CartDrawer() {
                         </span>
                         <button
                           onClick={() => updateQty(product.id, quantity + 1)}
-                          className="px-2.5 py-1 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                          disabled={product.stockQuantity !== undefined && quantity >= product.stockQuantity}
+                          className={`px-2.5 py-1 transition-colors ${
+                            product.stockQuantity !== undefined && quantity >= product.stockQuantity
+                              ? "text-zinc-300 dark:text-zinc-600 cursor-not-allowed"
+                              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                          }`}
                         >
                           <Plus size={12} />
                         </button>
                       </div>
-                      <p className="text-sm font-black text-velina-rose">
-                        ৳{(product.salePrice * quantity).toLocaleString()}
-                      </p>
+                      <div className="text-right">
+                        <p className="text-sm font-black text-velina-rose">
+                          ৳{(product.salePrice * quantity).toLocaleString()}
+                        </p>
+                        {product.stockQuantity !== undefined && quantity >= product.stockQuantity && (
+                          <p className="text-[9px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">Stock limit</p>
+                        )}
+                      </div>
                     </div>
                   </div>
 

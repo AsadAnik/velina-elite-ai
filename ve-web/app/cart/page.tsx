@@ -1,17 +1,48 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Tag, Truck, Shield, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Truck, Shield, ChevronRight, AlertCircle } from "lucide-react";
 import { useStore } from "@/lib/store";
 import Navbar from "@/app/components/Navbar";
 import CartDrawer from "@/app/components/CartDrawer";
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQty, cartTotal, cartCount, clearCart } = useStore();
+  const router = useRouter();
+  const { cart, removeFromCart, updateQty, cartTotal, cartCount, clearCart, validateStock } = useStore();
+  const [stockErrors, setStockErrors] = useState<string[]>([]);
   const shipping = cartTotal >= 999 ? 0 : 60;
   const grandTotal = cartTotal + shipping;
 
+  const handleProceedToCheckout = () => {
+    const validation = validateStock();
+    
+    if (!validation.isValid) {
+      setStockErrors(validation.errors);
+      return;
+    }
+    
+    setStockErrors([]);
+    router.push("/checkout");
+  };
+
+  // Clear stock errors when cart changes
+  const handleUpdateQty = (productId: number, quantity: number) => {
+    updateQty(productId, quantity);
+    setStockErrors([]);
+  };
+
+  const handleRemoveFromCart = (productId: number) => {
+    removeFromCart(productId);
+    setStockErrors([]);
+  };
+
+  const handleClearCart = () => {
+    clearCart();
+    setStockErrors([]);
+  };
   return (
     <>
       <Navbar />
@@ -47,7 +78,7 @@ export default function CartPage() {
               {/* Cart items */}
               <div className="flex-1 space-y-3">
                 <div className="flex justify-end">
-                  <button onClick={clearCart} className="text-xs text-zinc-400 hover:text-red-400 font-medium underline underline-offset-2 transition-colors">
+                  <button onClick={handleClearCart} className="text-xs text-zinc-400 hover:text-red-400 font-medium underline underline-offset-2 transition-colors">
                     Clear all
                   </button>
                 </div>
@@ -69,22 +100,33 @@ export default function CartPage() {
 
                       <div className="flex items-center justify-between mt-3">
                         <div className="flex items-center border border-zinc-200 dark:border-zinc-700 rounded-full overflow-hidden">
-                          <button onClick={() => updateQty(product.id, quantity - 1)} className="w-8 h-8 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                          <button onClick={() => handleUpdateQty(product.id, quantity - 1)} className="w-8 h-8 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
                             <Minus size={13} />
                           </button>
                           <span className="w-8 text-center text-sm font-black text-zinc-800 dark:text-zinc-200">{quantity}</span>
-                          <button onClick={() => updateQty(product.id, quantity + 1)} className="w-8 h-8 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                          <button 
+                            onClick={() => handleUpdateQty(product.id, quantity + 1)} 
+                            disabled={product.stockQuantity !== undefined && quantity >= product.stockQuantity}
+                            className={`w-8 h-8 flex items-center justify-center transition-colors ${
+                              product.stockQuantity !== undefined && quantity >= product.stockQuantity
+                                ? "text-zinc-300 dark:text-zinc-600 cursor-not-allowed"
+                                : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                            }`}
+                          >
                             <Plus size={13} />
                           </button>
                         </div>
                         <div className="text-right">
                           <p className="text-base font-black text-velina-rose">৳{(product.salePrice * quantity).toLocaleString()}</p>
                           {quantity > 1 && <p className="text-[11px] text-zinc-400 dark:text-zinc-500">৳{product.salePrice.toLocaleString()} each</p>}
+                          {product.stockQuantity !== undefined && quantity >= product.stockQuantity && (
+                            <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-1">Stock limit reached</p>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    <button onClick={() => removeFromCart(product.id)} className="self-start p-1.5 text-zinc-300 dark:text-zinc-600 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-all">
+                    <button onClick={() => handleRemoveFromCart(product.id)} className="self-start p-1.5 text-zinc-300 dark:text-zinc-600 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-all">
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -97,20 +139,24 @@ export default function CartPage() {
 
               {/* Order summary */}
               <div className="w-full lg:w-80 shrink-0 space-y-4">
-                {/* Promo code */}
-                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm">
-                  <h3 className="text-sm font-black text-zinc-800 dark:text-zinc-200 mb-3 flex items-center gap-2">
-                    <Tag size={15} className="text-velina-rose" /> Promo Code
-                  </h3>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Enter code"
-                      className="flex-1 border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 rounded-full px-4 py-2 text-sm outline-none focus:border-velina-rose transition-colors"
-                    />
-                    <button className="bg-zinc-900 dark:bg-zinc-700 text-white text-xs font-bold px-4 py-2 rounded-full hover:opacity-80 transition-opacity">Apply</button>
+                {/* Stock errors */}
+                {stockErrors.length > 0 && (
+                  <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-2xl p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={18} />
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-red-800 dark:text-red-400 mb-2">Stock Issues</h4>
+                        <ul className="space-y-1.5">
+                          {stockErrors.map((error, index) => (
+                            <li key={index} className="text-xs text-red-700 dark:text-red-300">
+                              {error}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Summary */}
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-100 dark:border-zinc-800 shadow-sm">
@@ -140,7 +186,10 @@ export default function CartPage() {
                     </div>
                   </div>
 
-                  <button className="mt-5 w-full bg-velina-rose text-white font-bold py-3.5 rounded-full flex items-center justify-center gap-2 hover:bg-velina-magenta transition-colors text-sm shadow-sm shadow-velina-rose/30">
+                  <button 
+                    onClick={handleProceedToCheckout}
+                    className="mt-5 w-full bg-velina-rose text-white font-bold py-3.5 rounded-full flex items-center justify-center gap-2 hover:bg-velina-magenta transition-colors text-sm shadow-sm shadow-velina-rose/30"
+                  >
                     Proceed to Checkout <ArrowRight size={16} />
                   </button>
                   <p className="mt-3 text-center text-[11px] text-zinc-400 dark:text-zinc-500 flex items-center justify-center gap-1">

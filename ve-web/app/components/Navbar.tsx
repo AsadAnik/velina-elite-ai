@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Heart, User, ShoppingBag, Menu, X, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, Heart, User, ShoppingBag, Menu, X, ChevronDown, ChevronRight, LogOut } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { fetchApi } from "@/lib/api";
 import { Category } from "@/types/category";
@@ -17,8 +17,13 @@ export default function Navbar() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileOpenCat, setMobileOpenCat] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [mounted, setMounted] = useState(false);
   const dropdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { cartCount, openCartDrawer } = useStore();
+  const { cartCount, openCartDrawer, user, logout } = useStore();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const promotionalBadges = [
     { name: "UNDERGARMENTS", href: "#", bg: "bg-blue-600 hover:bg-blue-700 text-white" },
@@ -113,29 +118,52 @@ export default function Navbar() {
             {/* Theme toggle */}
             <ThemeToggle />
 
-            <Link
-              href="/wishlist"
-              className="hidden md:flex items-center gap-1.5 bg-[#1c223a] dark:bg-zinc-800 text-white hover:opacity-90 px-2.5 sm:px-4 py-2 rounded-full text-xs font-bold transition-all"
-            >
-              <Heart size={14} className="fill-white" />
-              <span className="hidden sm:inline">WISHLIST</span>
-            </Link>
-            <Link
-              href="/auth"
-              className="hidden md:flex items-center gap-1 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 px-2.5 sm:px-3.5 py-2 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-all"
-            >
-              <User size={14} />
-              <span className="hidden sm:inline">LOGIN</span>
-            </Link>
+            {user && (
+              <Link
+                href="/wishlist"
+                className="hidden md:flex items-center gap-1.5 bg-[#1c223a] dark:bg-zinc-800 text-white hover:opacity-90 px-2.5 sm:px-4 py-2 rounded-full text-xs font-bold transition-all"
+              >
+                <Heart size={14} className="fill-white" />
+                <span className="hidden sm:inline">WISHLIST</span>
+              </Link>
+            )}
+            {user ? (
+              <div className="hidden md:flex items-center gap-2">
+                <div className="flex items-center gap-1.5 border border-zinc-200 dark:border-zinc-700 px-2.5 sm:px-3.5 py-2 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  <User size={14} />
+                  <span className="hidden sm:inline">{user.email}</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="flex items-center gap-1 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 px-2.5 sm:px-3.5 py-2 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-all"
+                >
+                  <LogOut size={14} />
+                  <span className="hidden sm:inline">LOGOUT</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/auth"
+                className="hidden md:flex items-center gap-1 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 px-2.5 sm:px-3.5 py-2 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-all"
+              >
+                <User size={14} />
+                <span className="hidden sm:inline">LOGIN</span>
+              </Link>
+            )}
             <button
-              onClick={openCartDrawer}
+              onClick={() => {
+                // Just open the drawer, don't add any product
+                openCartDrawer();
+              }}
               className="flex items-center gap-1.5 bg-velina-rose text-white hover:bg-velina-magenta px-2.5 sm:px-4 py-2 rounded-full text-xs font-bold shadow-sm transition-all"
             >
               <ShoppingBag size={14} />
               <span className="hidden sm:inline">BAG</span>
-              <span className="bg-white text-velina-rose px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none">
-                {cartCount}
-              </span>
+              {mounted && (
+                <span className="bg-white text-velina-rose px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none">
+                  {cartCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -339,20 +367,39 @@ export default function Navbar() {
 
         {/* Drawer footer */}
         <div className="px-5 py-4 border-t border-zinc-100 dark:border-zinc-800 flex gap-3">
-          <Link
-            href="/auth"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="flex-1 flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 py-2.5 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
-          >
-            <User size={14} /> Login
-          </Link>
-          <Link
-            href="/wishlist"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="flex-1 flex items-center justify-center gap-2 bg-[#1c223a] dark:bg-zinc-800 text-white py-2.5 rounded-full text-xs font-bold"
-          >
-            <Heart size={14} /> Wishlist
-          </Link>
+          {user ? (
+            <>
+              <div className="flex-1 flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 py-2.5 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <User size={14} /> {user.email}
+              </div>
+              <button
+                onClick={() => {
+                  logout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex-1 flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-colors"
+              >
+                <LogOut size={14} /> Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/auth"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex-1 flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 py-2.5 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+            >
+              <User size={14} /> Login
+            </Link>
+          )}
+          {user && (
+            <Link
+              href="/wishlist"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex-1 flex items-center justify-center gap-2 bg-[#1c223a] dark:bg-zinc-800 text-white py-2.5 rounded-full text-xs font-bold"
+            >
+              <Heart size={14} /> Wishlist
+            </Link>
+          )}
         </div>
       </div>
     </>

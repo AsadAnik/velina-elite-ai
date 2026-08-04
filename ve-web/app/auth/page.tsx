@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchApi } from "@/lib/api";
+import { useStore } from "@/lib/store";
 
 type Tab = "signin" | "register";
 
@@ -21,6 +22,7 @@ type AuthResponse = {
 
 export default function AuthPage() {
   const router = useRouter();
+  const { setUser } = useStore();
   const [tab, setTab] = useState<Tab>("signin");
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
@@ -58,8 +60,7 @@ export default function AuthPage() {
         throw new Error("Missing access token");
       }
 
-      localStorage.setItem("velina_customer_token", result.access_token);
-      localStorage.setItem("velina_customer_user", JSON.stringify(result.user));
+      setUser(result.user, result.access_token);
       toast.success("Welcome back! You are now signed in.");
       router.push("/");
     } catch (error) {
@@ -112,8 +113,7 @@ export default function AuthPage() {
         throw new Error("Missing access token");
       }
 
-      localStorage.setItem("velina_customer_token", result.access_token);
-      localStorage.setItem("velina_customer_user", JSON.stringify(result.user));
+      setUser(result.user, result.access_token);
       toast.success("Account created successfully. Welcome to Velina Elite BD.");
       router.push("/");
     } catch (error) {

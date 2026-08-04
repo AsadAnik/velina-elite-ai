@@ -4,14 +4,15 @@ import OrdersTable from "./components/OrdersTable";
 import { useOrders } from "./hooks";
 
 export default function Home() {
-  const { orders, statusFilter, setStatusFilter, statusFilters, stats, totalCount } =
+  const { orders, statusFilter, setStatusFilter, statusFilters, stats, totalCount, loading, loadOrders } =
     useOrders();
 
   const statCards = [
     { label: "Pending", value: stats.pending, color: "text-amber-600" },
-    { label: "Processing", value: stats.processing, color: "text-blue-600" },
-    { label: "Shipped", value: stats.shipped, color: "text-purple-600" },
-    { label: "Delivered", value: stats.delivered, color: "text-emerald-600" },
+    { label: "Confirmed", value: stats.confirmed, color: "text-blue-600" },
+    { label: "Preparing", value: stats.preparing, color: "text-purple-600" },
+    { label: "Shipped", value: stats.shipped, color: "text-teal-600" },
+    { label: "Completed", value: stats.completed, color: "text-emerald-600" },
   ];
 
   return (
@@ -25,7 +26,7 @@ export default function Home() {
         </h2>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {statCards.map((card) => (
           <div
             key={card.label}
@@ -50,12 +51,18 @@ export default function Home() {
                 : "border border-border bg-surface text-muted hover:border-velina-rose/40 hover:text-velina-rose"
             }`}
           >
-            {filter}
+            {filter.replace(/_/g, ' ')}
           </button>
         ))}
       </div>
 
-      <OrdersTable orders={orders} />
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-velina-rose mx-auto"></div>
+        </div>
+      ) : (
+        <OrdersTable orders={orders} />
+      )}
 
       <p className="text-center text-xs text-muted">
         Showing {orders.length} of {totalCount} orders

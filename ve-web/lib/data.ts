@@ -111,6 +111,7 @@ export type Product = {
   isSale: boolean;
   isNew?: boolean;
   isBestSeller?: boolean;
+  stockQuantity?: number;
 };
 
 const productImages = [

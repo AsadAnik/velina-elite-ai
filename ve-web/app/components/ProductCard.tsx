@@ -1,20 +1,50 @@
 "use client";
 
 import Image from "next/image";
-import { Heart, Star, ShoppingCart } from "lucide-react";
+import Link from "next/link";
+import { Heart, Star, ShoppingCart, AlertCircle } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Product } from "@/lib/data";
+import { useState } from "react";
 
 type Props = {
   product: Product;
 };
 
 export default function ProductCard({ product }: Props) {
-  const { addToCart, toggleWishlist, isInWishlist } = useStore();
+  const { addToCart, toggleWishlist, isInWishlist, cart } = useStore();
   const inWishlist = isInWishlist(product.id);
+  const [stockError, setStockError] = useState<string | null>(null);
+
+  const cartItem = cart.find(item => item.product.id === product.id);
+  const currentQuantity = cartItem?.quantity || 0;
+  const isOutOfStock = product.stockQuantity !== undefined && product.stockQuantity <= 0;
+  const isAtStockLimit = product.stockQuantity !== undefined && currentQuantity >= product.stockQuantity;
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleWishlist(product);
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (isOutOfStock) {
+      setStockError("Sorry, this product is out of stock");
+      return;
+    }
+    
+    if (isAtStockLimit) {
+      setStockError(`You can only add ${product.stockQuantity} item(s) to cart`);
+      return;
+    }
+
+    setStockError(null);
+    addToCart(product);
+  };
 
   return (
-    <article className="group bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md dark:hover:shadow-zinc-950 transition-all duration-300 flex flex-col">
+    <Link href={`/products/${product.id}`} className="group bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md dark:hover:shadow-zinc-950 transition-all duration-300 flex flex-col">
       {/* Image area */}
       <div className="relative aspect-square overflow-hidden bg-zinc-50 dark:bg-zinc-800">
         {product.discountPercent > 0 && (
@@ -42,7 +72,7 @@ export default function ProductCard({ product }: Props) {
 
         {/* Wishlist toggle */}
         <button
-          onClick={() => toggleWishlist(product)}
+          onClick={handleWishlistClick}
           className={`absolute bottom-2.5 right-2.5 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ${
             inWishlist
               ? "bg-velina-rose text-white scale-110"
@@ -99,14 +129,25 @@ export default function ProductCard({ product }: Props) {
         </div>
 
         {/* Add to Cart */}
+        {stockError && (
+          <div className="mt-2 text-xs text-red-500 flex items-center gap-1">
+            <AlertCircle size={12} />
+            {stockError}
+          </div>
+        )}
         <button
-          onClick={() => addToCart(product)}
-          className="mt-3 flex items-center justify-center gap-2 bg-zinc-900 dark:bg-zinc-700 dark:hover:bg-velina-rose text-white text-xs font-bold py-2.5 rounded-full hover:bg-velina-rose transition-colors duration-200 w-full"
+          onClick={handleAddToCart}
+          disabled={isOutOfStock || isAtStockLimit}
+          className={`mt-3 flex items-center justify-center gap-2 text-white text-xs font-bold py-2.5 rounded-full transition-colors duration-200 w-full ${
+            isOutOfStock || isAtStockLimit
+              ? "bg-zinc-300 dark:bg-zinc-700 cursor-not-allowed"
+              : "bg-zinc-900 dark:bg-zinc-700 dark:hover:bg-velina-rose hover:bg-velina-rose"
+          }`}
         >
           <ShoppingCart size={13} />
-          ADD TO CART
+          {isOutOfStock ? "OUT OF STOCK" : isAtStockLimit ? "STOCK LIMIT REACHED" : "ADD TO CART"}
         </button>
       </div>
-    </article>
+    </Link>
   );
 }
