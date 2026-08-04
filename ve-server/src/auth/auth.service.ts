@@ -17,6 +17,7 @@ export class AuthService {
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
+      include: { customer: true },
     });
 
     if (!user) {
@@ -38,6 +39,7 @@ export class AuthService {
   async adminLogin(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
+      include: { customer: true },
     });
 
     if (!user) {
@@ -82,17 +84,16 @@ export class AuthService {
         email: normalizedEmail,
         password: hashedPassword,
         role: Role.customer,
+        customer: {
+          create: {
+            fname: dto.fullName.trim().split(/\s+/)[0] ?? dto.fullName.trim(),
+            lname: dto.fullName.trim().split(/\s+/).slice(1).join(' ') || dto.fullName.trim(),
+            phone: dto.phone ?? null,
+            gender: dto.gender ?? 'other',
+          },
+        },
       },
-    });
-
-    await this.prisma.customer.create({
-      data: {
-        user_id: user.id,
-        fname: dto.fullName.trim().split(/\s+/)[0] ?? dto.fullName.trim(),
-        lname: dto.fullName.trim().split(/\s+/).slice(1).join(' ') || dto.fullName.trim(),
-        phone: dto.phone ?? null,
-        gender: dto.gender ?? 'other',
-      },
+      include: { customer: true },
     });
 
     return this.buildAuthResponse(user);
@@ -128,11 +129,12 @@ export class AuthService {
     });
   }
 
-  private buildAuthResponse(user: { id: number; email: string; role: Role }) {
+  private buildAuthResponse(user: { id: number; email: string; role: Role; customer?: { id: number } | null }) {
     const accessToken = this.jwtService.sign({
       sub: user.id,
       email: user.email,
       role: user.role,
+      customerId: user.customer?.id,
     });
 
     return {
@@ -141,6 +143,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
+        customerId: user.customer?.id,
       },
     };
   }

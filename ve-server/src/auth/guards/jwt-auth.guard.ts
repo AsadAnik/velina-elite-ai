@@ -24,9 +24,17 @@ export class JwtAuthGuard implements CanActivate {
                 secret: process.env.JWT_SECRET || 'velina-elite-dev-secret',
             });
 
+            // Ensure customerId is properly set
+            if (!payload.customerId && payload.sub) {
+                // Fallback: try to get customerId from database if not in token
+                // For now, we'll set it to null and let the service handle it
+                payload.customerId = null;
+            }
+
             request.user = payload;
             return true;
-        } catch {
+        } catch (error) {
+            console.error('JWT verification error:', error);
             throw new UnauthorizedException('Invalid or expired token');
         }
     }
