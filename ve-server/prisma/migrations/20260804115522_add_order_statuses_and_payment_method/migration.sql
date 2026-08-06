@@ -1,22 +1,34 @@
--- CreateEnum
-CREATE TYPE "PaymentMethod" AS ENUM ('cod');
+-- CreateEnum (idempotent)
+DO $$ BEGIN
+  CREATE TYPE "PaymentMethod" AS ENUM ('cod');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
--- AlterEnum
--- This migration adds more than one value to an enum.
--- With PostgreSQL versions 11 and earlier, this is not possible
--- in a single migration. This can be worked around by creating
--- multiple migrations, each migration adding only one value to
--- the enum.
+-- AlterEnum (idempotent - only add values if they don't exist)
+DO $$ BEGIN
+  ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'preparing';
+EXCEPTION WHEN others THEN null; END $$;
+DO $$ BEGIN
+  ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'shipping';
+EXCEPTION WHEN others THEN null; END $$;
+DO $$ BEGIN
+  ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'ready_for_receive';
+EXCEPTION WHEN others THEN null; END $$;
+DO $$ BEGIN
+  ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'completed';
+EXCEPTION WHEN others THEN null; END $$;
 
+-- AlterTable (idempotent)
+ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "note" TEXT;
+ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "payment_method" "PaymentMethod" NOT NULL DEFAULT 'cod';
 
-ALTER TYPE "OrderStatus" ADD VALUE 'preparing';
-ALTER TYPE "OrderStatus" ADD VALUE 'shipping';
-ALTER TYPE "OrderStatus" ADD VALUE 'ready_for_receive';
-ALTER TYPE "OrderStatus" ADD VALUE 'completed';
-
--- AlterTable
-ALTER TABLE "Order" ADD COLUMN     "note" TEXT,
-ADD COLUMN     "payment_method" "PaymentMethod" NOT NULL DEFAULT 'cod';
-
--- AlterTable
-ALTER TABLE "Wishlist" ALTER COLUMN "customer_id" DROP DEFAULT;
+-- AlterTable (idempotent - only drop default if column exists)
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'Wishlist' AND column_name = 'customer_id'
+  ) THEN
+    ALTER TABLE "Wishlist" ALTER COLUMN "customer_id" DROP DEFAULT;
+  END IF;
+END $$;

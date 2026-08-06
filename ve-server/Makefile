@@ -60,3 +60,17 @@ backup-prod:
 		-F p \
 		-f backups/backup_$$(date +%F).sql
 	@echo "✅ Backup saved to backups/backup_$$(date +%F).sql"
+
+# ─── Database Restore Production ───────────────────────────────
+restore-prod:
+	@if [ -f "$1" ]; then \
+		export $$(grep -v '^#' .env.production | grep -v '^$$' | xargs) && \
+		pg_restore \
+			--clean \
+			--if-exists \
+			-d $$DATABASE_URL \
+			"$1"; \
+		echo "✅ Database restored from $1"; \
+	else \
+		echo "❌ Backup file $1 not found"; \
+	fi

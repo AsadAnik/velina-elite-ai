@@ -9,7 +9,11 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # exist before dependencies are installed.
 COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
-RUN pnpm install --frozen-lockfile
+RUN pnpm config set fetch-retries 5 \
+    && pnpm config set fetch-retry-mintimeout 20000 \
+    && pnpm config set fetch-retry-maxtimeout 120000 \
+    && pnpm config set fetch-timeout 300000 \
+    && pnpm install --frozen-lockfile
 
 COPY . .
 RUN pnpm prisma generate
