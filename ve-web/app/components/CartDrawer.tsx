@@ -183,10 +183,10 @@ export default function CartDrawer() {
             >
               View Cart
             </Link>
-            <button className="w-full flex items-center justify-center gap-2 bg-velina-rose text-white text-sm font-bold py-3 rounded-full hover:bg-velina-magenta transition-colors">
+            {/* <button className="w-full flex items-center justify-center gap-2 bg-velina-rose text-white text-sm font-bold py-3 rounded-full hover:bg-velina-magenta transition-colors">
               Checkout
               <ArrowRight size={16} />
-            </button>
+            </button> */}
           </div>
         )}
       </div>
