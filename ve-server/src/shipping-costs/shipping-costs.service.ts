@@ -14,13 +14,13 @@ export class ShippingCostsService {
    * @returns Object
    */
   async createShippingCost(dto: CreateShippingCostDto) {
-    const existingConfig = await (this.prisma as any).shippingCost.findFirst();
+    const existingConfig = await this.prisma.shippingCost.findFirst();
     
     if (existingConfig) {
       throw new BadRequestException('Shipping cost configuration already exists. Use update instead.');
     }
 
-    return (this.prisma as any).shippingCost.create({
+    return this.prisma.shippingCost.create({
       data: {
         inside_dhaka_cost: dto.inside_dhaka_cost,
         outside_dhaka_cost: dto.outside_dhaka_cost,
@@ -34,7 +34,7 @@ export class ShippingCostsService {
    * @returns Object
    */
   async getShippingCost() {
-    const config = await (this.prisma as any).shippingCost.findFirst();
+    const config = await this.prisma.shippingCost.findFirst();
     
     if (!config) {
       // Return default values if no configuration exists
@@ -58,7 +58,7 @@ export class ShippingCostsService {
    * @returns Object
    */
   async updateShippingCost(id: number, dto: UpdateShippingCostDto) {
-    const existingConfig = await (this.prisma as any).shippingCost.findUnique({
+    const existingConfig = await this.prisma.shippingCost.findUnique({
       where: { id },
     });
 
@@ -66,7 +66,7 @@ export class ShippingCostsService {
       throw new BadRequestException('Shipping cost configuration not found');
     }
 
-    return (this.prisma as any).shippingCost.update({
+    return this.prisma.shippingCost.update({
       where: { id },
       data: {
         ...(dto.inside_dhaka_cost !== undefined && { inside_dhaka_cost: dto.inside_dhaka_cost }),
@@ -82,7 +82,7 @@ export class ShippingCostsService {
    * @returns Object
    */
   async deleteShippingCost(id: number) {
-    const existingConfig = await (this.prisma as any).shippingCost.findUnique({
+    const existingConfig = await this.prisma.shippingCost.findUnique({
       where: { id },
     });
 
@@ -90,7 +90,7 @@ export class ShippingCostsService {
       throw new BadRequestException('Shipping cost configuration not found');
     }
 
-    return (this.prisma as any).shippingCost.delete({
+    return this.prisma.shippingCost.delete({
       where: { id },
     });
   }

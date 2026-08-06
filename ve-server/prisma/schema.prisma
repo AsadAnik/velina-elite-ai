@@ -170,6 +170,15 @@ model Rating {
   @@unique([customer_id, product_id])
 }
 
+model ShippingCost {
+  id                 Int      @id @default(autoincrement())
+  inside_dhaka_cost  Decimal  @db.Decimal(10, 2)
+  outside_dhaka_cost Decimal  @db.Decimal(10, 2)
+  currency_symbol    String   @default("৳")
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+}
+
 enum Role {
   customer
   admin
