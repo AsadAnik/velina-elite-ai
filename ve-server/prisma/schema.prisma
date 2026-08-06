@@ -7,6 +7,169 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  created_at DateTime  @default(now())
+  password   String
+  role       Role      @default(customer)
+  updated_at DateTime  @updatedAt
+  username   String    @unique
+  customer   Customer?
+}
+
+model Customer {
+  id         Int        @id @default(autoincrement())
+  user_id    Int        @unique
+  fname      String
+  lname      String
+  phone      String?
+  gender     String
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+  addresses  Address[]
+  carts      Cart[]
+  user       User       @relation(fields: [user_id], references: [id])
+  orders     Order[]
+  wishlists  Wishlist[]
+  ratings    Rating[]
+}
+
+model Address {
+  id          Int      @id @default(autoincrement())
+  customer_id Int
+  line1       String
+  line2       String?
+  city        String
+  counrty     String
+  postal_code String
+  is_default  Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  customer    Customer @relation(fields: [customer_id], references: [id])
+  orders      Order[]
+}
+
+model Category {
+  id             Int           @id @default(autoincrement())
+  name           String
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+  products       Product[]
+  sub_categories SubCategory[]
+}
+
+model SubCategory {
+  id          Int       @id @default(autoincrement())
+  name        String
+  category_id Int
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  products    Product[]
+  category    Category  @relation(fields: [category_id], references: [id])
+}
+
+model Product {
+  id              Int              @id @default(autoincrement())
+  title           String
+  description     String
+  price           Decimal          @default(0)
+  stock_quantity  Int              @default(0)
+  images_url      String[]
+  status          ProductStatus    @default(draft)
+  category_id     Int
+  sub_category_id Int
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
+  currency_symbol String           @default("৳")
+  mrp_price       Decimal          @default(0) @db.Decimal(10, 2)
+  regular_price   Decimal          @default(0) @db.Decimal(10, 2)
+  save_amount     Decimal          @default(0) @db.Decimal(10, 2)
+  save_percentage Int              @default(0)
+  size            Decimal?         @db.Decimal(10, 2)
+  size_unit       ProductSizeUnit?
+  carts           Cart[]
+  orderItems      OrderItem[]
+  category        Category         @relation(fields: [category_id], references: [id])
+  sub_category    SubCategory      @relation(fields: [sub_category_id], references: [id])
+  wishlists       Wishlist[]
+  ratings         Rating[]
+}
+
+model Wishlist {
+  id          Int      @id @default(autoincrement())
+  product_id  Int
+  created_at  DateTime @default(now())
+  customer_id Int      @default(0)
+  customer    Customer @relation(fields: [customer_id], references: [id])
+  product     Product  @relation(fields: [product_id], references: [id])
+
+  @@unique([customer_id, product_id])
+}
+
+model Cart {
+  id          Int      @id @default(autoincrement())
+  customer_id Int
+  product_id  Int
+  quantity    Int      @default(1)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  customer    Customer @relation(fields: [customer_id], references: [id])
+  product     Product  @relation(fields: [product_id], references: [id])
+
+  @@unique([customer_id, product_id])
+}
+
+model Order {
+  id                  Int            @id @default(autoincrement())
+  customer_id         Int
+  shipping_address_id Int
+  total_amount        Decimal        @db.Decimal(10, 2)
+  status              OrderStatus    @default(pending)
+  created_at          DateTime       @default(now())
+  updated_at          DateTime       @updatedAt
+  note                String?
+  payment_method      PaymentMethod  @default(cod)
+  customer            Customer       @relation(fields: [customer_id], references: [id])
+  shipping_address    Address        @relation(fields: [shipping_address_id], references: [id])
+  order_histories     OrderHistory[]
+  order_items         OrderItem[]
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  order_id   Int
+  product_id Int
+  quantity   Int
+  unit_price Decimal  @db.Decimal(10, 2)
+  created_at DateTime @default(now())
+  order      Order    @relation(fields: [order_id], references: [id])
+  product    Product  @relation(fields: [product_id], references: [id])
+}
+
+model OrderHistory {
+  id         Int         @id @default(autoincrement())
+  order_id   Int
+  status     OrderStatus
+  note       String?
+  created_at DateTime    @default(now())
+  order      Order       @relation(fields: [order_id], references: [id])
+}
+
+model Rating {
+  id          Int      @id @default(autoincrement())
+  customer_id Int
+  product_id  Int
+  stars       Int
+  comment     String?  @db.Text
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  customer    Customer @relation(fields: [customer_id], references: [id])
+  product     Product  @relation(fields: [product_id], references: [id])
+
+  @@unique([customer_id, product_id])
+}
+
 enum Role {
   customer
   admin
@@ -27,214 +190,15 @@ enum ProductSizeUnit {
 enum OrderStatus {
   pending
   confirmed
-  preparing
-  shipping
   shipped
   delivered
+  cancelled
+  preparing
+  shipping
   ready_for_receive
   completed
-  cancelled
 }
 
 enum PaymentMethod {
   cod
-}
-
-// region USER
-model User {
-  id         Int       @id @default(autoincrement())
-  username   String    @unique
-  email      String    @unique
-  password   String
-  role       Role      @default(customer)
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  customer   Customer?
-}
-
-// region CUSTOMER
-model Customer {
-  id         Int      @id @default(autoincrement())
-  user_id    Int      @unique
-  fname      String
-  lname      String
-  phone      String?
-  gender     String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  user      User       @relation(fields: [user_id], references: [id])
-  addresses Address[]
-  // orders    Order[]
-  wishlists Wishlist[]
-  orders    Order[]
-  carts     Cart[]
-  ratings   Rating[]
-}
-
-// region ADDRESS
-model Address {
-  id          Int      @id @default(autoincrement())
-  customer_id Int
-  line1       String
-  line2       String?
-  city        String
-  counrty     String
-  postal_code String
-  is_default  Boolean  @default(false)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  customer Customer @relation(fields: [customer_id], references: [id])
-  // shipped_orders Order[]  @relation("ShippingAddress")
-  orders   Order[]
-}
-
-// region CATEGORY
-model Category {
-  id         Int      @id @default(autoincrement())
-  name       String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  sub_categories SubCategory[]
-  products       Product[]
-}
-
-// region SUB-CATEGORY
-model SubCategory {
-  id          Int      @id @default(autoincrement())
-  name        String
-  category_id Int
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  category Category  @relation(fields: [category_id], references: [id])
-  products Product[]
-}
-
-// region PRODUCT
-model Product {
-  id              Int              @id @default(autoincrement())
-  title           String
-  description     String
-  price           Decimal          @default(0)
-  regular_price   Decimal          @default(0) @db.Decimal(10, 2)
-  mrp_price       Decimal          @default(0) @db.Decimal(10, 2)
-  save_amount     Decimal          @default(0) @db.Decimal(10, 2)
-  save_percentage Int              @default(0)
-  currency_symbol String           @default("৳")
-  size            Decimal?         @db.Decimal(10, 2)
-  size_unit       ProductSizeUnit?
-  stock_quantity  Int              @default(0)
-  images_url      String[]
-  status          ProductStatus    @default(draft)
-  category_id     Int
-  sub_category_id Int
-  created_at      DateTime         @default(now())
-  updated_at      DateTime         @updatedAt
-
-  category     Category    @relation(fields: [category_id], references: [id])
-  sub_category SubCategory @relation(fields: [sub_category_id], references: [id])
-  // order_items OrderItem[]
-  wishlists    Wishlist[]
-  orderItems   OrderItem[]
-  carts        Cart[]
-  ratings      Rating[]
-}
-
-// region WISHLIST
-model Wishlist {
-  id          Int      @id @default(autoincrement())
-  customer_id Int
-  product_id  Int
-  created_at  DateTime @default(now())
-
-  customer Customer @relation(fields: [customer_id], references: [id])
-  product  Product  @relation(fields: [product_id], references: [id])
-
-  @@unique([customer_id, product_id]) // prevent the duplicate wishlist entry
-}
-
-// region CART
-model Cart {
-  id          Int      @id @default(autoincrement())
-  customer_id Int
-  product_id  Int
-  quantity    Int      @default(1)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  customer Customer @relation(fields: [customer_id], references: [id])
-  product  Product  @relation(fields: [product_id], references: [id])
-
-  @@unique([customer_id, product_id]) // prevent duplicate cart entries
-}
-
-// region ORDER
-model Order {
-  id                  Int           @id @default(autoincrement())
-  customer_id         Int
-  shipping_address_id Int
-  total_amount        Decimal       @db.Decimal(10, 2)
-  status              OrderStatus   @default(pending)
-  payment_method      PaymentMethod @default(cod)
-  note                String?
-  created_at          DateTime      @default(now())
-  updated_at          DateTime      @updatedAt
-
-  customer         Customer       @relation(fields: [customer_id], references: [id])
-  shipping_address Address        @relation(fields: [shipping_address_id], references: [id])
-  order_items      OrderItem[]
-  order_histories  OrderHistory[]
-}
-
-// region ORDER-ITEM
-model OrderItem {
-  id         Int      @id @default(autoincrement())
-  order_id   Int
-  product_id Int
-  quantity   Int
-  unit_price Decimal  @db.Decimal(10, 2)
-  created_at DateTime @default(now())
-
-  order   Order   @relation(fields: [order_id], references: [id])
-  product Product @relation(fields: [product_id], references: [id])
-}
-
-// region ORDER-HISTORY
-model OrderHistory {
-  id         Int         @id @default(autoincrement())
-  order_id   Int
-  status     OrderStatus
-  note       String?
-  created_at DateTime    @default(now())
-
-  order Order @relation(fields: [order_id], references: [id])
-}
-
-// region SHIPPING-COST
-model ShippingCost {
-  id                 Int      @id @default(autoincrement())
-  inside_dhaka_cost  Decimal  @db.Decimal(10, 2)
-  outside_dhaka_cost Decimal  @db.Decimal(10, 2)
-  currency_symbol    String   @default("৳")
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
-}
-
-// region RATING
-model Rating {
-  id          Int      @id @default(autoincrement())
-  customer_id Int
-  product_id  Int
-  stars       Int
-  comment     String?  @db.Text
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  customer Customer @relation(fields: [customer_id], references: [id])
-  product  Product  @relation(fields: [product_id], references: [id])
-
-  @@unique([customer_id, product_id])
 }
