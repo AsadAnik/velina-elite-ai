@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { getAllOrders, Order, OrderStatus } from "@/lib/orders";
+import { getAllOrders, deleteOrder, updateOrderStatus, Order, OrderStatus } from "@/lib/orders";
 import { toast } from "sonner";
 
 const statusFilters = ["All", "pending", "confirmed", "preparing", "shipping", "shipped", "ready_for_receive", "completed", "cancelled"];
@@ -46,6 +46,27 @@ export function useOrders() {
     [orders]
   );
 
+  const handleUpdateStatus = async (orderId: number, status: OrderStatus) => {
+    try {
+      await updateOrderStatus(orderId, { status });
+      toast.success("Order status updated");
+      loadOrders();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update order status");
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: number) => {
+    if (!confirm("Are you sure you want to delete this order?")) return;
+    try {
+      await deleteOrder(orderId);
+      toast.success("Order deleted successfully");
+      loadOrders();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete order");
+    }
+  };
+
   return {
     orders: filteredOrders,
     allOrders: orders,
@@ -56,5 +77,7 @@ export function useOrders() {
     totalCount: orders.length,
     loading,
     loadOrders,
+    handleUpdateStatus,
+    handleDeleteOrder,
   };
 }

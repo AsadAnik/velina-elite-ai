@@ -127,3 +127,9 @@ export async function updateOrderStatus(id: number, data: UpdateOrderStatusDto):
     data,
   });
 }
+
+export async function deleteOrder(id: number): Promise<{ message: string }> {
+  return fetchApi<{ message: string }>(`/orders/${id}`, {
+    method: 'DELETE',
+  });
+}

@@ -49,3 +49,14 @@ migrate-local:
 
 migrate-prod:
 	pnpm dotenv -e .env.production -- pnpm prisma migrate deploy
+
+# ─── Database Backup Production ───────────────────────────────
+backup-prod:
+	@mkdir -p backups
+	@export $$(grep -v '^#' .env.production | grep -v '^$$' | xargs) && \
+	pg_dump $$DATABASE_URL \
+		--no-owner \
+		--no-acl \
+		-F p \
+		-f backups/backup_$$(date +%F).sql
+	@echo "✅ Backup saved to backups/backup_$$(date +%F).sql"

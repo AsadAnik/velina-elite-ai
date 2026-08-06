@@ -129,10 +129,13 @@ export default function Navbar() {
             )}
             {user ? (
               <div className="hidden md:flex items-center gap-2">
-                <div className="flex items-center gap-1.5 border border-zinc-200 dark:border-zinc-700 px-2.5 sm:px-3.5 py-2 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <Link
+                  href={user.role === 'admin' ? '/admin' : '/profile'}
+                  className="flex items-center gap-1.5 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 px-2.5 sm:px-3.5 py-2 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-all"
+                >
                   <User size={14} />
-                  <span className="hidden sm:inline">{user.email}</span>
-                </div>
+                  <span className="hidden sm:inline">{user.role === 'admin' ? 'ADMIN' : 'PROFILE'}</span>
+                </Link>
                 <button
                   onClick={logout}
                   className="flex items-center gap-1 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 px-2.5 sm:px-3.5 py-2 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-all"
@@ -366,18 +369,22 @@ export default function Navbar() {
         </div>
 
         {/* Drawer footer */}
-        <div className="px-5 py-4 border-t border-zinc-100 dark:border-zinc-800 flex gap-3">
+        <div className="px-5 py-4 border-t border-zinc-100 dark:border-zinc-800 flex gap-3 flex-wrap">
           {user ? (
             <>
-              <div className="flex-1 flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 py-2.5 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                <User size={14} /> {user.email}
-              </div>
+              <Link
+                href={user.role === 'admin' ? '/admin' : '/profile'}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex-1 flex min-w-[40%] items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-colors"
+              >
+                <User size={14} /> {user.role === 'admin' ? 'Admin' : 'Profile'}
+              </Link>
               <button
                 onClick={() => {
                   logout();
                   setIsMobileMenuOpen(false);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-colors"
+                className="flex-1 flex min-w-[40%] items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 py-2.5 rounded-full text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-colors"
               >
                 <LogOut size={14} /> Logout
               </button>

@@ -10,6 +10,8 @@ import { WishlistsModule } from './wishlists/wishlists.module';
 import { CartsModule } from './carts/carts.module';
 import { AddressesModule } from './addresses/addresses.module';
 import { OrdersModule } from './orders/orders.module';
+import { ShippingCostsModule } from './shipping-costs/shipping-costs.module';
+import { RatingsModule } from './ratings/ratings.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { OrdersModule } from './orders/orders.module';
     CartsModule,
     AddressesModule,
     OrdersModule,
+    ShippingCostsModule,
+    RatingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

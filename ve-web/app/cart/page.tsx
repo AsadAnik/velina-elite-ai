@@ -13,9 +13,6 @@ export default function CartPage() {
   const router = useRouter();
   const { cart, removeFromCart, updateQty, cartTotal, cartCount, clearCart, validateStock } = useStore();
   const [stockErrors, setStockErrors] = useState<string[]>([]);
-  const shipping = cartTotal >= 999 ? 0 : 60;
-  const grandTotal = cartTotal + shipping;
-
   const handleProceedToCheckout = () => {
     const validation = validateStock();
     
@@ -30,6 +27,11 @@ export default function CartPage() {
 
   // Clear stock errors when cart changes
   const handleUpdateQty = (productId: number, quantity: number) => {
+    const cartItem = cart.find(item => item.product.id === productId);
+    if (cartItem && cartItem.product.stockQuantity !== undefined && quantity > cartItem.product.stockQuantity) {
+      // Don't update, the store will handle the error toast
+      return;
+    }
     updateQty(productId, quantity);
     setStockErrors([]);
   };
@@ -120,7 +122,9 @@ export default function CartPage() {
                           <p className="text-base font-black text-velina-rose">৳{(product.salePrice * quantity).toLocaleString()}</p>
                           {quantity > 1 && <p className="text-[11px] text-zinc-400 dark:text-zinc-500">৳{product.salePrice.toLocaleString()} each</p>}
                           {product.stockQuantity !== undefined && quantity >= product.stockQuantity && (
-                            <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-1">Stock limit reached</p>
+                            <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-1 flex items-center gap-1 justify-end">
+                              <AlertCircle size={10} /> Stock limit reached
+                            </p>
                           )}
                         </div>
                       </div>
@@ -163,26 +167,17 @@ export default function CartPage() {
                   <h3 className="text-sm font-black text-zinc-900 dark:text-zinc-100 mb-4">Order Summary</h3>
                   <div className="space-y-2.5 text-sm">
                     <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
-                      <span>Subtotal ({cartCount} item{cartCount !== 1 ? "s" : ""})</span>
+                      <span>Subtotal ({cartCount} item{cartCount !== 1 ? "s" : "})"})</span>
                       <span className="font-semibold text-zinc-800 dark:text-zinc-200">৳{cartTotal.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
-                      <span className="flex items-center gap-1"><Truck size={13} /> Shipping</span>
-                      {shipping === 0 ? (
-                        <span className="text-emerald-600 font-bold">FREE</span>
-                      ) : (
-                        <span className="font-semibold text-zinc-800 dark:text-zinc-200">৳{shipping}</span>
-                      )}
+                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-3 py-2">
+                      <Truck size={12} />
+                      Shipping calculated at checkout based on your address
                     </div>
-                    {cartTotal < 999 && (
-                      <p className="text-[11px] text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-3 py-2">
-                        Add ৳{(999 - cartTotal).toLocaleString()} more for free shipping 🚚
-                      </p>
-                    )}
                     <hr className="border-zinc-100 dark:border-zinc-800 my-1" />
                     <div className="flex justify-between text-zinc-900 dark:text-zinc-100 font-black text-base">
-                      <span>Total</span>
-                      <span className="text-velina-rose">৳{grandTotal.toLocaleString()}</span>
+                      <span>Subtotal</span>
+                      <span className="text-velina-rose">৳{cartTotal.toLocaleString()}</span>
                     </div>
                   </div>
 

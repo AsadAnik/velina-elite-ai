@@ -10,32 +10,7 @@ import React, {
 import { Product } from "./data";
 import { Product as ApiProduct } from "@/types/product";
 import { fetchApi } from "./api";
-
-// Transform API product to UI product format
-function transformApiToUiProduct(apiProduct: ApiProduct): Product {
-  const price = Number(apiProduct.regular_price ?? apiProduct.price);
-  const mrp = Number(apiProduct.mrp_price ?? price);
-  const saving = Number(apiProduct.save_amount ?? Math.max(0, mrp - price));
-  const percentage = Number(apiProduct.save_percentage ?? (mrp ? Math.round(saving / mrp * 100) : 0));
-
-  return {
-    id: apiProduct.id,
-    name: apiProduct.title,
-    brand: apiProduct.category?.name || "Velina",
-    category: apiProduct.category?.name?.toLowerCase() || "skin",
-    subcategory: apiProduct.sub_category?.name?.toLowerCase() || "general",
-    image: apiProduct.images_url[0] || "/placeholder.png",
-    originalPrice: mrp,
-    salePrice: price,
-    discountPercent: percentage,
-    rating: 4.5,
-    reviewCount: 100,
-    isSale: mrp > price,
-    isNew: false,
-    isBestSeller: false,
-    stockQuantity: apiProduct.stock_quantity,
-  };
-}
+import { Toast, ToastType } from "@/app/components/Toast";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -57,6 +32,8 @@ type State = {
   lastAddedProduct: Product | null;
   user: User | null;
   token: string | null;
+  toasts: Toast[];
+  buyNowItem: CartItem | null;
 };
 
 type Action =
@@ -69,7 +46,11 @@ type Action =
   | { type: "OPEN_CART_DRAWER" }
   | { type: "CLOSE_CART_DRAWER" }
   | { type: "SET_USER"; user: User | null; token: string | null }
-  | { type: "LOGOUT" };
+  | { type: "LOGOUT" }
+  | { type: "ADD_TOAST"; toast: Toast }
+  | { type: "REMOVE_TOAST"; toastId: string }
+  | { type: "SET_BUY_NOW"; item: CartItem }
+  | { type: "CLEAR_BUY_NOW" };
 
 // ─── Reducer ─────────────────────────────────────────────────────────────────
 
@@ -130,6 +111,20 @@ function reducer(state: State, action: Action): State {
       return { ...state, user: action.user, token: action.token };
     case "LOGOUT":
       return { ...state, user: null, token: null };
+    case "ADD_TOAST":
+      return {
+        ...state,
+        toasts: [...state.toasts, action.toast],
+      };
+    case "REMOVE_TOAST":
+      return {
+        ...state,
+        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+      };
+    case "SET_BUY_NOW":
+      return { ...state, buyNowItem: action.item };
+    case "CLEAR_BUY_NOW":
+      return { ...state, buyNowItem: null };
     default:
       return state;
   }
@@ -151,6 +146,10 @@ type StoreContextValue = State & {
   setUser: (user: User | null, token: string | null) => void;
   logout: () => void;
   validateStock: () => { isValid: boolean; errors: string[] };
+  showToast: (message: string, type: ToastType) => void;
+  removeToast: (toastId: string) => void;
+  setBuyNow: (product: Product, quantity?: number) => void;
+  clearBuyNow: () => void;
 };
 
 const StoreContext = createContext<StoreContextValue | null>(null);
@@ -162,6 +161,8 @@ const initialState: State = {
   lastAddedProduct: null,
   user: null,
   token: null,
+  toasts: [],
+  buyNowItem: null,
 };
 
 // Load cart from localStorage
@@ -213,11 +214,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const currentQuantity = existingItem ? existingItem.quantity : 0;
       
       if (product.stockQuantity !== undefined && currentQuantity + 1 > product.stockQuantity) {
-        // Don't allow exceeding stock
+        // Show error toast
+        const toast: Toast = {
+          id: Date.now().toString(),
+          type: "error",
+          message: `Cannot add more "${product.name}". Only ${product.stockQuantity} item(s) available in stock.`,
+          duration: 4000,
+        };
+        dispatch({ type: "ADD_TOAST", toast });
         return;
       }
       
       dispatch({ type: "ADD_TO_CART", product, openDrawer });
+      
+      // Show success toast
+      const successToast: Toast = {
+        id: (Date.now() + 1).toString(),
+        type: "success",
+        message: `"${product.name}" added to cart`,
+        duration: 2000,
+      };
+      dispatch({ type: "ADD_TOAST", toast: successToast });
     },
     [state.cart]
   );
@@ -231,7 +248,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     (productId: number, quantity: number) => {
       const cartItem = state.cart.find(item => item.product.id === productId);
       if (cartItem && cartItem.product.stockQuantity !== undefined && quantity > cartItem.product.stockQuantity) {
-        // Don't allow exceeding stock
+        // Show error toast
+        const toast: Toast = {
+          id: Date.now().toString(),
+          type: "error",
+          message: `Cannot update quantity for "${cartItem.product.name}". Only ${cartItem.product.stockQuantity} item(s) available in stock.`,
+          duration: 4000,
+        };
+        dispatch({ type: "ADD_TOAST", toast });
         return;
       }
       dispatch({ type: "UPDATE_QTY", productId, quantity });
@@ -296,6 +320,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
   }, [state.cart]);
 
+  const showToast = useCallback((message: string, type: ToastType) => {
+    const toast: Toast = {
+      id: Date.now().toString(),
+      type,
+      message,
+      duration: 3000,
+    };
+    dispatch({ type: "ADD_TOAST", toast });
+  }, []);
+
+  const removeToast = useCallback((toastId: string) => {
+    dispatch({ type: "REMOVE_TOAST", toastId });
+  }, []);
+
+  const setBuyNow = useCallback((product: Product, quantity = 1) => {
+    dispatch({ type: "SET_BUY_NOW", item: { product, quantity } });
+  }, []);
+
+  const clearBuyNow = useCallback(() => {
+    dispatch({ type: "CLEAR_BUY_NOW" });
+  }, []);
+
 
 
 
@@ -335,6 +381,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         setUser,
         logout,
         validateStock,
+        showToast,
+        removeToast,
+        setBuyNow,
+        clearBuyNow,
       }}
     >
       {children}

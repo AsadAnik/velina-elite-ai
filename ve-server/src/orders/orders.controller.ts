@@ -12,6 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -55,7 +56,7 @@ export class OrdersController {
   // Admin endpoints
   @Get()
   @UseGuards(RolesGuard)
-  @Roles('admin')
+  @Roles(Role.admin, Role.owner)
   @ApiOperation({ summary: 'Get all orders (Admin)' })
   getAllOrders() {
     return this.ordersService.getAllOrders();
@@ -63,7 +64,7 @@ export class OrdersController {
 
   @Get(':id')
   @UseGuards(RolesGuard)
-  @Roles('admin')
+  @Roles(Role.admin, Role.owner)
   @ApiOperation({ summary: 'Get order by ID (Admin)' })
   getOrderById(@Param('id') id: string) {
     return this.ordersService.getOrderById(parseInt(id));
@@ -71,7 +72,7 @@ export class OrdersController {
 
   @Put(':id/status')
   @UseGuards(RolesGuard)
-  @Roles('admin')
+  @Roles(Role.admin, Role.owner)
   @ApiOperation({ summary: 'Update order status (Admin)' })
   updateOrderStatus(
     @Param('id') id: string,
@@ -81,5 +82,13 @@ export class OrdersController {
       parseInt(id),
       updateOrderStatusDto,
     );
+  }
+
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.admin, Role.owner)
+  @ApiOperation({ summary: 'Delete order (Admin)' })
+  deleteOrder(@Param('id') id: string) {
+    return this.ordersService.deleteOrder(parseInt(id));
   }
 }

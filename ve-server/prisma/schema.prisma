@@ -69,6 +69,7 @@ model Customer {
   wishlists Wishlist[]
   orders    Order[]
   carts     Cart[]
+  ratings   Rating[]
 }
 
 // region ADDRESS
@@ -114,24 +115,24 @@ model SubCategory {
 
 // region PRODUCT
 model Product {
-  id               Int              @id @default(autoincrement())
-  title            String
-  description      String
-  price            Decimal          @default(0)
-  regular_price    Decimal          @default(0) @db.Decimal(10, 2)
-  mrp_price        Decimal          @default(0) @db.Decimal(10, 2)
-  save_amount      Decimal          @default(0) @db.Decimal(10, 2)
-  save_percentage  Int              @default(0)
-  currency_symbol  String           @default("৳")
-  size             Decimal?         @db.Decimal(10, 2)
-  size_unit        ProductSizeUnit?
-  stock_quantity   Int              @default(0)
-  images_url       String[]
-  status           ProductStatus    @default(draft)
-  category_id      Int
-  sub_category_id  Int
-  created_at       DateTime         @default(now())
-  updated_at       DateTime         @updatedAt
+  id              Int              @id @default(autoincrement())
+  title           String
+  description     String
+  price           Decimal          @default(0)
+  regular_price   Decimal          @default(0) @db.Decimal(10, 2)
+  mrp_price       Decimal          @default(0) @db.Decimal(10, 2)
+  save_amount     Decimal          @default(0) @db.Decimal(10, 2)
+  save_percentage Int              @default(0)
+  currency_symbol String           @default("৳")
+  size            Decimal?         @db.Decimal(10, 2)
+  size_unit       ProductSizeUnit?
+  stock_quantity  Int              @default(0)
+  images_url      String[]
+  status          ProductStatus    @default(draft)
+  category_id     Int
+  sub_category_id Int
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
 
   category     Category    @relation(fields: [category_id], references: [id])
   sub_category SubCategory @relation(fields: [sub_category_id], references: [id])
@@ -139,14 +140,15 @@ model Product {
   wishlists    Wishlist[]
   orderItems   OrderItem[]
   carts        Cart[]
+  ratings      Rating[]
 }
 
 // region WISHLIST
 model Wishlist {
-  id         Int      @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   customer_id Int
-  product_id Int
-  created_at DateTime @default(now())
+  product_id  Int
+  created_at  DateTime @default(now())
 
   customer Customer @relation(fields: [customer_id], references: [id])
   product  Product  @relation(fields: [product_id], references: [id])
@@ -156,12 +158,12 @@ model Wishlist {
 
 // region CART
 model Cart {
-  id         Int      @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   customer_id Int
-  product_id Int
-  quantity   Int      @default(1)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  product_id  Int
+  quantity    Int      @default(1)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   customer Customer @relation(fields: [customer_id], references: [id])
   product  Product  @relation(fields: [product_id], references: [id])
@@ -171,15 +173,15 @@ model Cart {
 
 // region ORDER
 model Order {
-  id                  Int          @id @default(autoincrement())
+  id                  Int           @id @default(autoincrement())
   customer_id         Int
   shipping_address_id Int
-  total_amount        Decimal      @db.Decimal(10, 2)
-  status              OrderStatus  @default(pending)
+  total_amount        Decimal       @db.Decimal(10, 2)
+  status              OrderStatus   @default(pending)
   payment_method      PaymentMethod @default(cod)
   note                String?
-  created_at          DateTime     @default(now())
-  updated_at          DateTime     @updatedAt
+  created_at          DateTime      @default(now())
+  updated_at          DateTime      @updatedAt
 
   customer         Customer       @relation(fields: [customer_id], references: [id])
   shipping_address Address        @relation(fields: [shipping_address_id], references: [id])
@@ -209,4 +211,30 @@ model OrderHistory {
   created_at DateTime    @default(now())
 
   order Order @relation(fields: [order_id], references: [id])
+}
+
+// region SHIPPING-COST
+model ShippingCost {
+  id                 Int      @id @default(autoincrement())
+  inside_dhaka_cost  Decimal  @db.Decimal(10, 2)
+  outside_dhaka_cost Decimal  @db.Decimal(10, 2)
+  currency_symbol    String   @default("৳")
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+}
+
+// region RATING
+model Rating {
+  id          Int      @id @default(autoincrement())
+  customer_id Int
+  product_id  Int
+  stars       Int
+  comment     String?  @db.Text
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  customer Customer @relation(fields: [customer_id], references: [id])
+  product  Product  @relation(fields: [product_id], references: [id])
+
+  @@unique([customer_id, product_id])
 }

@@ -8,11 +8,30 @@ import Navbar from "@/app/components/Navbar";
 import CartDrawer from "@/app/components/CartDrawer";
 
 export default function WishlistPage() {
-  const { wishlist, toggleWishlist, addToCart } = useStore();
+  const { wishlist, toggleWishlist, addToCart, cart } = useStore();
 
   const handleMoveToCart = (product: (typeof wishlist)[0]) => {
-    addToCart(product);
-    toggleWishlist(product);
+    const cartItem = cart.find(item => item.product.id === product.id);
+    const currentQuantity = cartItem?.quantity || 0;
+    const isAtStockLimit = product.stockQuantity !== undefined && currentQuantity >= product.stockQuantity;
+    
+    if (!isAtStockLimit) {
+      addToCart(product);
+      toggleWishlist(product);
+    }
+  };
+
+  const handleAddAllToCart = () => {
+    wishlist.forEach((product) => {
+      const cartItem = cart.find(item => item.product.id === product.id);
+      const currentQuantity = cartItem?.quantity || 0;
+      const isAtStockLimit = product.stockQuantity !== undefined && currentQuantity >= product.stockQuantity;
+      
+      if (!isAtStockLimit) {
+        addToCart(product);
+        toggleWishlist(product);
+      }
+    });
   };
 
   return (
@@ -33,7 +52,7 @@ export default function WishlistPage() {
 
             {wishlist.length > 0 && (
               <button
-                onClick={() => { wishlist.forEach((p) => addToCart(p)); wishlist.forEach((p) => toggleWishlist(p)); }}
+                onClick={handleAddAllToCart}
                 className="flex items-center gap-2 bg-zinc-900 dark:bg-zinc-800 text-white text-xs font-bold px-4 py-2.5 rounded-full hover:opacity-80 transition-opacity"
               >
                 <ShoppingCart size={14} /> Add All to Cart
@@ -119,7 +138,7 @@ export default function WishlistPage() {
                   <p className="text-[11px] text-zinc-400 dark:text-zinc-500">Total: ৳{wishlist.reduce((s, p) => s + p.salePrice, 0).toLocaleString()}</p>
                 </div>
                 <button
-                  onClick={() => { wishlist.forEach((p) => addToCart(p)); wishlist.forEach((p) => toggleWishlist(p)); }}
+                  onClick={handleAddAllToCart}
                   className="flex items-center gap-2 bg-velina-rose text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-velina-magenta transition-colors"
                 >
                   <ShoppingCart size={14} /> Add All

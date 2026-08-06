@@ -1,19 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 export default function AdminAuthGuard({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
-    const token = typeof window !== "undefined" ? localStorage.getItem("velina_admin_token") : null;
-    const isPublicRoute = pathname === "/admin/login";
+    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
+        setIsMounted(true);
+        const token = localStorage.getItem("velina_admin_token");
+        const isPublicRoute = pathname === "/admin/login";
+
         if (!token && !isPublicRoute) {
             router.replace("/admin/login");
         }
-    }, [token, isPublicRoute, router]);
+    }, [pathname, router]);
+
+    if (!isMounted) return null;
+
+    const token = localStorage.getItem("velina_admin_token");
+    const isPublicRoute = pathname === "/admin/login";
 
     if (!token && !isPublicRoute) {
         return null;

@@ -2,10 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Star, ShoppingCart, AlertCircle } from "lucide-react";
+import { Heart, Star, ShoppingCart } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Product } from "@/lib/data";
-import { useState } from "react";
 
 type Props = {
   product: Product;
@@ -14,7 +13,6 @@ type Props = {
 export default function ProductCard({ product }: Props) {
   const { addToCart, toggleWishlist, isInWishlist, cart } = useStore();
   const inWishlist = isInWishlist(product.id);
-  const [stockError, setStockError] = useState<string | null>(null);
 
   const cartItem = cart.find(item => item.product.id === product.id);
   const currentQuantity = cartItem?.quantity || 0;
@@ -23,23 +21,13 @@ export default function ProductCard({ product }: Props) {
 
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     toggleWishlist(product);
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    if (isOutOfStock) {
-      setStockError("Sorry, this product is out of stock");
-      return;
-    }
-    
-    if (isAtStockLimit) {
-      setStockError(`You can only add ${product.stockQuantity} item(s) to cart`);
-      return;
-    }
-
-    setStockError(null);
+    e.preventDefault();
     addToCart(product);
   };
 
@@ -129,12 +117,6 @@ export default function ProductCard({ product }: Props) {
         </div>
 
         {/* Add to Cart */}
-        {stockError && (
-          <div className="mt-2 text-xs text-red-500 flex items-center gap-1">
-            <AlertCircle size={12} />
-            {stockError}
-          </div>
-        )}
         <button
           onClick={handleAddToCart}
           disabled={isOutOfStock || isAtStockLimit}

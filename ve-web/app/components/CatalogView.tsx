@@ -25,11 +25,14 @@ function transformApiToUiProduct(apiProduct: ApiProduct): UiProduct {
     originalPrice: mrp,
     salePrice: price,
     discountPercent: percentage,
-    rating: 4.5,
-    reviewCount: 100,
+    rating: apiProduct.ratings && apiProduct.ratings.length > 0
+      ? Number((apiProduct.ratings.reduce((sum, r) => sum + r.stars, 0) / apiProduct.ratings.length).toFixed(1))
+      : 0,
+    reviewCount: apiProduct.ratings?.length || 0,
     isSale: mrp > price,
     isNew: false,
     isBestSeller: false,
+    stockQuantity: apiProduct.stock_quantity,
   };
 }
 

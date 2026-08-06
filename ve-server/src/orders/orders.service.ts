@@ -359,4 +359,34 @@ export class OrdersService {
 
     return { message: 'Order cancelled successfully' };
   }
+
+  async deleteOrder(orderId: number) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    // Delete order with transaction
+    await this.prisma.$transaction(async (tx) => {
+      // Delete order history entries
+      await tx.orderHistory.deleteMany({
+        where: { order_id: orderId },
+      });
+
+      // Delete order items
+      await tx.orderItem.deleteMany({
+        where: { order_id: orderId },
+      });
+
+      // Delete order
+      await tx.order.delete({
+        where: { id: orderId },
+      });
+    });
+
+    return { message: 'Order deleted successfully' };
+  }
 }

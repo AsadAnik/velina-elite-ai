@@ -24,6 +24,9 @@ export interface Product {
   updated_at: string;
   category?: Category;
   sub_category?: SubCategory;
+  ratings?: {
+    stars: number;
+  }[];
 }
 
 export interface CreateProductDto {

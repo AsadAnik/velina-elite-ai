@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { X, Plus, Minus, ShoppingBag, ArrowRight, Trash2 } from "lucide-react";
+import { X, Plus, Minus, ShoppingBag, ArrowRight, Trash2, AlertCircle } from "lucide-react";
 import { useStore } from "@/lib/store";
+import { useState, useEffect } from "react";
 
 export default function CartDrawer() {
   const {
@@ -15,6 +16,20 @@ export default function CartDrawer() {
     cartTotal,
     cartCount,
   } = useStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleUpdateQty = (productId: number, newQuantity: number) => {
+    const cartItem = cart.find(item => item.product.id === productId);
+    if (cartItem && cartItem.product.stockQuantity !== undefined && newQuantity > cartItem.product.stockQuantity) {
+      // Don't update, the store will handle the error toast
+      return;
+    }
+    updateQty(productId, newQuantity);
+  };
 
   return (
     <>
@@ -39,7 +54,7 @@ export default function CartDrawer() {
             <h2 className="font-bold text-zinc-900 dark:text-zinc-100 text-base">
               My Bag
               <span className="ml-2 bg-velina-rose text-white text-xs font-black px-2 py-0.5 rounded-full">
-                {cartCount}
+                {mounted ? cartCount : 0}
               </span>
             </h2>
           </div>
@@ -54,7 +69,14 @@ export default function CartDrawer() {
 
         {/* Items */}
         <div className="flex-1 overflow-y-auto py-3">
-          {cart.length === 0 ? (
+          {!mounted ? (
+            <div className="flex flex-col items-center justify-center h-full gap-4 px-6 text-center">
+              <div className="w-20 h-20 rounded-full bg-velina-peach/40 dark:bg-velina-rose/10 flex items-center justify-center">
+                <ShoppingBag size={36} className="text-velina-rose/60" />
+              </div>
+              <p className="text-zinc-500 dark:text-zinc-400 text-sm">Loading...</p>
+            </div>
+          ) : cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-4 px-6 text-center">
               <div className="w-20 h-20 rounded-full bg-velina-peach/40 dark:bg-velina-rose/10 flex items-center justify-center">
                 <ShoppingBag size={36} className="text-velina-rose/60" />
@@ -91,7 +113,7 @@ export default function CartDrawer() {
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center border border-zinc-200 dark:border-zinc-700 rounded-full overflow-hidden">
                         <button
-                          onClick={() => updateQty(product.id, quantity - 1)}
+                          onClick={() => handleUpdateQty(product.id, quantity - 1)}
                           className="px-2.5 py-1 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
                         >
                           <Minus size={12} />
@@ -100,7 +122,7 @@ export default function CartDrawer() {
                           {quantity}
                         </span>
                         <button
-                          onClick={() => updateQty(product.id, quantity + 1)}
+                          onClick={() => handleUpdateQty(product.id, quantity + 1)}
                           disabled={product.stockQuantity !== undefined && quantity >= product.stockQuantity}
                           className={`px-2.5 py-1 transition-colors ${
                             product.stockQuantity !== undefined && quantity >= product.stockQuantity
@@ -116,7 +138,9 @@ export default function CartDrawer() {
                           ৳{(product.salePrice * quantity).toLocaleString()}
                         </p>
                         {product.stockQuantity !== undefined && quantity >= product.stockQuantity && (
-                          <p className="text-[9px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">Stock limit</p>
+                          <p className="text-[9px] text-amber-600 dark:text-amber-400 font-medium mt-0.5 flex items-center gap-1 justify-end">
+                            <AlertCircle size={10} /> Stock limit
+                          </p>
                         )}
                       </div>
                     </div>
@@ -135,7 +159,7 @@ export default function CartDrawer() {
         </div>
 
         {/* Footer */}
-        {cart.length > 0 && (
+        {mounted && cart.length > 0 && (
           <div className="border-t border-zinc-100 dark:border-zinc-800 px-5 py-4 space-y-3">
             {cartTotal < 999 && (
               <div className="bg-velina-peach/30 dark:bg-velina-rose/10 rounded-xl px-4 py-2.5 text-xs text-zinc-600 dark:text-zinc-400">

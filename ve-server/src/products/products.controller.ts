@@ -41,11 +41,14 @@ import { Role } from '@prisma/client';
 @ApiBearerAuth()
 @Controller('products')
 export class ProductsController {
-  constructor(
-    private readonly productsService: ProductsService,
-    private readonly cloudinaryService: CloudinaryService,
-  ) { }
+  constructor(private readonly productsService: ProductsService, private readonly cloudinaryService: CloudinaryService) { }
 
+  /**
+   * CREATE PRODUCT SERVICE
+   * @param dto CreateProductDto
+   * @param files uploaded files
+   * @returns Object
+   */
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -91,6 +94,13 @@ export class ProductsController {
     return this.productsService.createProduct(dto);
   }
 
+  /**
+   * UPDATE PRODUCT SERVICE
+   * @param id product_id
+   * @param dto UpdateProductDto
+   * @param files uploaded files
+   * @returns Object
+   */
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -146,6 +156,12 @@ export class ProductsController {
     return this.productsService.updateProduct(id, dto);
   }
 
+  /**
+   * UPDATE PRODUCT STATUS SERVICE
+   * @param id product_id
+   * @param status product_status
+   * @returns Object
+   */
   @Patch('status/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -157,6 +173,11 @@ export class ProductsController {
     return this.productsService.updateProductStatus(id, status);
   }
 
+  /**
+   * GET ALL PRODUCTS SERVICE
+   * @param query ProductsQueryDto
+   * @returns Object
+   */
   @Get()
   @ApiOperation({
     summary:
@@ -171,6 +192,11 @@ export class ProductsController {
     return this.productsService.findAll(query);
   }
 
+  /**
+   * GET PRODUCT BY ID SERVICE
+   * @param id product_id
+   * @returns Object
+   */
   @Get(':id')
   @ApiOperation({
     summary: 'Get product details by ID, including category and sub-category',
@@ -179,6 +205,27 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
+  /**
+   * GET RELATED PRODUCTS SERVICE
+   * @param id product_id
+   * @param limit number of limit
+   * @returns Object
+   */
+  @Get(':id/related')
+  @ApiOperation({ summary: 'Get related products' })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  findRelated(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('limit') limit?: string,
+  ) {
+    return this.productsService.findRelated(id, limit ? parseInt(limit, 10) : 4);
+  }
+
+  /**
+   * DELETE PRODUCT SERVICE
+   * @param id product_id
+   * @returns Object
+   */
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)

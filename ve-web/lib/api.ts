@@ -14,20 +14,35 @@ apiClient.interceptors.request.use((config) => {
     return config;
   }
 
-  // Determine if this is an admin request based on the endpoint
-  const isAdminEndpoint = config.url?.startsWith('/categories') || 
-                          config.url?.startsWith('/sub-categories') ||
-                          config.url?.startsWith('/products') ||
-                          config.url?.startsWith('/orders') ||
-                          config.url?.startsWith('/customers') ||
-                          config.url?.startsWith('/admin') ||
-                          config.url?.startsWith('/auth/admin');
+  const isAdminEndpoint = (url?: string, method?: string) => {
+    if (!url) return false;
+    if (url.startsWith('/admin') || url.startsWith('/auth/admin')) return true;
+    if (url.startsWith('/customers')) return true;
+    
+    const m = method?.toLowerCase();
+    
+    if (url.startsWith('/shipping-costs')) {
+      return m !== 'get';
+    }
+    
+    if (url.startsWith('/orders')) {
+      if (url.startsWith('/orders/my-orders')) return false;
+      if (m === 'post' && url === '/orders') return false; // Create order is customer
+      return true;
+    }
+    
+    if (url.startsWith('/categories') || url.startsWith('/sub-categories') || url.startsWith('/products')) {
+      return m !== 'get';
+    }
+    
+    return false;
+  };
 
+  const isAdmin = isAdminEndpoint(config.url, config.method);
   const adminToken = localStorage.getItem('velina_admin_token');
   const customerToken = localStorage.getItem('velina_customer_token');
   
-  // Use appropriate token based on endpoint type
-  const token = isAdminEndpoint ? adminToken : customerToken;
+  const token = isAdmin ? adminToken : customerToken;
 
   if (token) {
     config.headers = config.headers ?? {};
@@ -60,16 +75,33 @@ export async function fetchApi<T>(endpoint: string, options: AxiosRequestConfig 
         const isAuthEndpoint = ['/auth/login', '/auth/register', '/auth/admin/login'].includes(endpoint);
 
         if (!isAuthEndpoint && typeof window !== 'undefined') {
-          // Determine if this is an admin request based on the endpoint
-          const isAdminEndpoint = endpoint.startsWith('/categories') || 
-                                  endpoint.startsWith('/sub-categories') ||
-                                  endpoint.startsWith('/products') ||
-                                  endpoint.startsWith('/orders') ||
-                                  endpoint.startsWith('/customers') ||
-                                  endpoint.startsWith('/admin') ||
-                                  endpoint.startsWith('/auth/admin');
+          const isAdminEndpoint = (url?: string, method?: string) => {
+            if (!url) return false;
+            if (url.startsWith('/admin') || url.startsWith('/auth/admin')) return true;
+            if (url.startsWith('/customers')) return true;
+            
+            const m = method?.toLowerCase();
+            
+            if (url.startsWith('/shipping-costs')) {
+              return m !== 'get';
+            }
+            
+            if (url.startsWith('/orders')) {
+              if (url.startsWith('/orders/my-orders')) return false;
+              if (m === 'post' && url === '/orders') return false;
+              return true;
+            }
+            
+            if (url.startsWith('/categories') || url.startsWith('/sub-categories') || url.startsWith('/products')) {
+              return m !== 'get';
+            }
+            
+            return false;
+          };
 
-          if (isAdminEndpoint) {
+          const isAdmin = isAdminEndpoint(error.config?.url, error.config?.method);
+
+          if (isAdmin) {
             localStorage.removeItem('velina_admin_token');
             localStorage.removeItem('velina_admin_user');
             window.location.href = '/admin/login';

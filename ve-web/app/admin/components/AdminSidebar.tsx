@@ -15,6 +15,8 @@ import {
   Sparkles,
   Layers,
   List,
+  Truck,
+  Star,
 } from "lucide-react";
 
 const BRAND_LOGO = "/1776256116755-removebg-preview.png";
@@ -26,8 +28,10 @@ const navItems = [
   { label: "Sub-Categories", href: "/admin/sub-categories", icon: List },
   { label: "Orders", href: "/admin/orders", icon: ShoppingBag },
   { label: "Customers", href: "/admin/customers", icon: Users },
+  { label: "Ratings", href: "/admin/ratings", icon: Star },
   { label: "Promotions", href: "/admin/promotions", icon: Tag },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { label: "Shipping", href: "/admin/shipping", icon: Truck },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

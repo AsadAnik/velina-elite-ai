@@ -133,6 +133,7 @@ export class ProductsService {
       include: {
         category: true,
         sub_category: true,
+        ratings: { select: { stars: true } },
       },
     });
 
@@ -169,6 +170,7 @@ export class ProductsService {
         include: {
           category: true,
           sub_category: true,
+          ratings: { select: { stars: true } },
         },
         orderBy: { created_at: 'desc' },
       }),
@@ -186,6 +188,31 @@ export class ProductsService {
         total_pages: totalPages,
       },
     };
+  }
+
+  /**
+   * FIND RELATED PRODUCTS SERVICE
+   * @param id product_id
+   * @param limit number of products
+   */
+  // region Find Related Products
+  async findRelated(id: number, limit: number = 4) {
+    const product = await this.findOne(id);
+    
+    return this.prisma.product.findMany({
+      where: {
+        category_id: product.category_id,
+        id: { not: id },
+        status: 'active',
+      },
+      take: limit,
+      include: {
+        category: true,
+        sub_category: true,
+        ratings: { select: { stars: true } },
+      },
+      orderBy: { created_at: 'desc' },
+    });
   }
 
   /**

@@ -4,7 +4,7 @@ import OrdersTable from "./components/OrdersTable";
 import { useOrders } from "./hooks";
 
 export default function Home() {
-  const { orders, statusFilter, setStatusFilter, statusFilters, stats, totalCount, loading, loadOrders } =
+  const { orders, statusFilter, setStatusFilter, statusFilters, stats, totalCount, loading, loadOrders, handleUpdateStatus, handleDeleteOrder } =
     useOrders();
 
   const statCards = [
@@ -61,7 +61,7 @@ export default function Home() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-velina-rose mx-auto"></div>
         </div>
       ) : (
-        <OrdersTable orders={orders} />
+        <OrdersTable orders={orders} onUpdateStatus={handleUpdateStatus} onDeleteOrder={handleDeleteOrder} />
       )}
 
       <p className="text-center text-xs text-muted">

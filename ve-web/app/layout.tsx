@@ -5,6 +5,7 @@ import { StoreProvider } from "@/lib/store";
 import { Providers } from "./providers";
 import WhatsAppButton from "./components/WhatsAppButton";
 import { Analytics } from "@vercel/analytics/next"
+import ToastWrapper from "./components/ToastWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,8 +40,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>
           <StoreProvider>
-            {children}
-            <WhatsAppButton />
+            <ToastWrapper>
+              {children}
+              <WhatsAppButton />
+            </ToastWrapper>
           </StoreProvider>
         </Providers>
       </body>

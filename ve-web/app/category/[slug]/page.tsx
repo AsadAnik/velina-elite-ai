@@ -6,6 +6,7 @@ import CartDrawer from "@/app/components/CartDrawer";
 import StickyCartWidget from "@/app/components/StickyCartWidget";
 import { fetchApi } from "@/lib/api";
 import { Category } from "@/types/category";
+
 export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
  const [category, setCategory] = useState<Category | null>(null);
  useEffect(() => { params.then(({slug}) => fetchApi<Category>(`/categories/${Number(slug.split("-")[0])}`).then(setCategory)); }, [params]);
