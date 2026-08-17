@@ -15,7 +15,7 @@
     "start:local": "dotenv -e .env.local -- prisma generate && dotenv -e .env.local -- nest start --watch",
     "start:neon": "dotenv -e .env.production -- prisma generate && dotenv -e .env.production -- nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "prisma migrate deploy && node dist/src/main",
+    "start:prod": "pnpm prisma migrate deploy; node dist/src/main",
     "lint": "echo \"ESLint disabled for this project\"",
     "test": "jest",
     "test:watch": "jest --watch",
