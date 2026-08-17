@@ -2,8 +2,7 @@ import React from "react";
 import Navbar from "./components/Navbar";
 import HeroCarousel from "./components/HeroCarousel";
 import ConcernCategories from "./components/ConcernCategories";
-import DealsSection from "./components/DealsSection";
-import PromoBanners from "./components/PromoBanners";
+import DynamicHomeSections from "./components/DynamicHomeSections";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 import StickyCartWidget from "./components/StickyCartWidget";
@@ -23,11 +22,8 @@ export default function Home() {
         {/* Concern Categories Grid */}
         <ConcernCategories />
 
-        {/* Deals You Cannot Miss */}
-        <DealsSection />
-
-        {/* Interactive Steppers and Banners */}
-        <PromoBanners />
+        {/* Dynamic Home Sections (Deals, Offers, Promo Banners with order customization) */}
+        <DynamicHomeSections />
 
         {/* 3. Authenticity / Trust Ribbon (Dark Banner) */}
         <section className="bg-zinc-900 dark:bg-zinc-950 py-8 text-white w-full border-t border-zinc-800 dark:border-zinc-900/50 transition-colors duration-300">

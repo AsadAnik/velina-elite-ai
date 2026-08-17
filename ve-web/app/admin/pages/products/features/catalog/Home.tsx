@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import ProductFilters from "./components/ProductFilters";
 import ProductTable from "./components/ProductTable";
 import ImageUploader from "./components/ImageUploader";
+import PaginationBar from "./components/PaginationBar";
 import { useProducts } from "./hooks";
 import { fetchApi } from "@/lib/api";
 import { Product } from "@/types/product";
@@ -20,6 +21,11 @@ export default function Home() {
     setSearch,
     category,
     setCategory,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    meta,
     totalCount,
     loading,
     refreshData,
@@ -199,9 +205,15 @@ export default function Home() {
         />
       )}
 
-      <p className="text-center text-xs text-muted">
-        Showing {products.length} of {totalCount} products
-      </p>
+      {/* Numeric Pagination Bar */}
+      <PaginationBar
+        currentPage={page}
+        totalPages={meta.total_pages}
+        totalItems={meta.total}
+        itemsPerPage={limit}
+        onPageChange={setPage}
+        onItemsPerPageChange={setLimit}
+      />
 
       {/* Modal for Add/Edit Product */}
       {isModalOpen && (

@@ -34,6 +34,10 @@ apiClient.interceptors.request.use((config) => {
     if (url.startsWith('/categories') || url.startsWith('/sub-categories') || url.startsWith('/products')) {
       return m !== 'get';
     }
+
+    if (url.startsWith('/home-sections')) {
+      return url !== '/home-sections/public';
+    }
     
     return false;
   };
@@ -88,12 +92,16 @@ export async function fetchApi<T>(endpoint: string, options: AxiosRequestConfig 
             
             if (url.startsWith('/orders')) {
               if (url.startsWith('/orders/my-orders')) return false;
-              if (m === 'post' && url === '/orders') return false;
+              if (m === 'post' && url === '/orders') return false; // Create order is customer
               return true;
             }
             
             if (url.startsWith('/categories') || url.startsWith('/sub-categories') || url.startsWith('/products')) {
               return m !== 'get';
+            }
+
+            if (url.startsWith('/home-sections')) {
+              return url !== '/home-sections/public';
             }
             
             return false;

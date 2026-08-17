@@ -17,12 +17,14 @@ import {
   List,
   Truck,
   Star,
+  LayoutTemplate,
 } from "lucide-react";
 
 const BRAND_LOGO = "/1776256116755-removebg-preview.png";
 
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard, exact: true },
+  { label: "Home Sections", href: "/admin/home-sections", icon: LayoutTemplate },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Categories", href: "/admin/categories", icon: Layers },
   { label: "Sub-Categories", href: "/admin/sub-categories", icon: List },
