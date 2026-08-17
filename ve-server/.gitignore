@@ -60,3 +60,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 backups/
 *.dump
 *.sql
+!prisma/migrations/**/*.sql
+!prisma/migrations/*.sql
