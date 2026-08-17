@@ -27,6 +27,12 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  /**
+   * CREATE ORDER
+   * @param req Request object containing user information
+   * @param createOrderDto CreateOrderDto object containing order information
+   * @returns 
+   */
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create new order (COD)' })
@@ -34,18 +40,35 @@ export class OrdersController {
     return this.ordersService.createOrder(req.user.customerId, createOrderDto);
   }
 
+  /**
+   * GET CURRENT USER ORDERS
+   * @param req 
+   * @returns 
+   */
   @Get('my-orders')
   @ApiOperation({ summary: 'Get current user orders' })
   getMyOrders(@Request() req) {
     return this.ordersService.getCustomerOrders(req.user.customerId);
   }
 
+  /**
+   * GET CURRENT USER ORDER BY ID
+   * @param req Request object containing user information
+   * @param id Order ID
+   * @returns Order information
+   */
   @Get('my-orders/:id')
   @ApiOperation({ summary: 'Get current user order by ID' })
   getMyOrderById(@Request() req, @Param('id') id: string) {
     return this.ordersService.getOrderById(parseInt(id), req.user.customerId);
   }
 
+  /**
+   * CANCEL CURRENT USER ORDER
+   * @param req Request object containing user information
+   * @param id Order ID
+   * @returns Order information
+   */
   @Post('my-orders/:id/cancel')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancel current user order' })
@@ -53,7 +76,10 @@ export class OrdersController {
     return this.ordersService.cancelOrder(parseInt(id), req.user.customerId);
   }
 
-  // Admin endpoints
+  /**
+   * GET ALL ORDERS (ADMIN)
+   * @returns All orders
+   */
   @Get()
   @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -62,6 +88,11 @@ export class OrdersController {
     return this.ordersService.getAllOrders();
   }
 
+  /**
+   * GET ORDER BY ID (ADMIN)
+   * @param id Order ID
+   * @returns Order information
+   */
   @Get(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -70,6 +101,12 @@ export class OrdersController {
     return this.ordersService.getOrderById(parseInt(id));
   }
 
+  /**
+   * UPDATE ORDER STATUS (ADMIN)
+   * @param id Order ID
+   * @param updateOrderStatusDto UpdateOrderStatusDto object containing order status information
+   * @returns Order information
+   */
   @Put(':id/status')
   @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -84,6 +121,11 @@ export class OrdersController {
     );
   }
 
+  /**
+   * DELETE ORDER (ADMIN)
+   * @param id Order ID
+   * @returns Order information
+   */
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.admin, Role.owner)

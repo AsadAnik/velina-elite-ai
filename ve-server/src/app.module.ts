@@ -12,6 +12,7 @@ import { AddressesModule } from './addresses/addresses.module';
 import { OrdersModule } from './orders/orders.module';
 import { ShippingCostsModule } from './shipping-costs/shipping-costs.module';
 import { RatingsModule } from './ratings/ratings.module';
+import { HomeSectionsModule } from './home-sections/home-sections.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { RatingsModule } from './ratings/ratings.module';
     OrdersModule,
     ShippingCostsModule,
     RatingsModule,
+    HomeSectionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

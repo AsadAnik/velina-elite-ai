@@ -19,17 +19,8 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { ProductsService } from './products.service';
-import {
-  CreateProductDto,
-  ProductStatus,
-} from 'src/products/dto/create-product.dto';
-import {
-  ApiOperation,
-  ApiTags,
-  ApiConsumes,
-  ApiQuery,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { CreateProductDto, ProductStatus } from 'src/products/dto/create-product.dto';
+import { ApiOperation, ApiTags, ApiConsumes, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateProductDto } from 'src/products/dto/update-product.dto';
 import { ProductsQueryDto } from './dto/products-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -62,15 +53,8 @@ export class ProductsController {
       transform: true,
     }),
   )
-  async create(
-    @Body() dto: CreateProductDto,
-    @UploadedFiles() files?: Array<Express.Multer.File>,
-  ) {
-    const existingUrls = Array.isArray(dto.images_url)
-      ? dto.images_url
-      : dto.images_url
-        ? [dto.images_url as string]
-        : [];
+  async create(@Body() dto: CreateProductDto, @UploadedFiles() files?: Array<Express.Multer.File>) {
+    const existingUrls = Array.isArray(dto.images_url) ? dto.images_url : dto.images_url ? [dto.images_url as string] : [];
     const totalImagesCount = existingUrls.length + (files ? files.length : 0);
 
     if (totalImagesCount < 1 || totalImagesCount > 3) {
@@ -80,13 +64,11 @@ export class ProductsController {
     }
 
     if (files && files.length > 0) {
-      const uploadPromises = files.map((file) =>
-        this.cloudinaryService.uploadFile(file),
-      );
+      const uploadPromises = files.map((file) => this.cloudinaryService.uploadFile(file));
       const uploadResults = await Promise.all(uploadPromises);
       const urls = uploadResults.map((res) => res.secure_url);
-
       dto.images_url = [...existingUrls, ...urls];
+      
     } else {
       dto.images_url = existingUrls;
     }
@@ -114,17 +96,9 @@ export class ProductsController {
       transform: true,
     }),
   )
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateProductDto,
-    @UploadedFiles() files?: Array<Express.Multer.File>,
-  ) {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto, @UploadedFiles() files?: Array<Express.Multer.File>) {
     if (dto.images_url !== undefined || (files && files.length > 0)) {
-      const existingUrls = Array.isArray(dto.images_url)
-        ? dto.images_url
-        : dto.images_url
-          ? [dto.images_url as string]
-          : [];
+      const existingUrls = Array.isArray(dto.images_url) ? dto.images_url : dto.images_url ? [dto.images_url as string] : [];
       const totalImagesCount = existingUrls.length + (files ? files.length : 0);
 
       if (totalImagesCount < 1 || totalImagesCount > 3) {
@@ -141,16 +115,11 @@ export class ProductsController {
       const uploadResults = await Promise.all(uploadPromises);
       const urls = uploadResults.map((res) => res.secure_url);
 
-      const existingUrls = Array.isArray(dto.images_url)
-        ? dto.images_url
-        : dto.images_url
-          ? [dto.images_url as string]
-          : [];
+      const existingUrls = Array.isArray(dto.images_url) ? dto.images_url : dto.images_url ? [dto.images_url as string] : [];
       dto.images_url = [...existingUrls, ...urls];
+
     } else if (dto.images_url !== undefined) {
-      dto.images_url = Array.isArray(dto.images_url)
-        ? dto.images_url
-        : [dto.images_url];
+      dto.images_url = Array.isArray(dto.images_url) ? dto.images_url : [dto.images_url];
     }
 
     return this.productsService.updateProduct(id, dto);
@@ -166,10 +135,7 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
   @ApiOperation({ summary: 'Update Product Status' })
-  updateProductStatus(
-    @Param('id', ParseIntPipe) id: number,
-    @Body('status') status: ProductStatus,
-  ) {
+  updateProductStatus(@Param('id', ParseIntPipe) id: number, @Body('status') status: ProductStatus) {
     return this.productsService.updateProductStatus(id, status);
   }
 
@@ -214,10 +180,7 @@ export class ProductsController {
   @Get(':id/related')
   @ApiOperation({ summary: 'Get related products' })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  findRelated(
-    @Param('id', ParseIntPipe) id: number,
-    @Query('limit') limit?: string,
-  ) {
+  findRelated(@Param('id', ParseIntPipe) id: number, @Query('limit') limit?: string) {
     return this.productsService.findRelated(id, limit ? parseInt(limit, 10) : 4);
   }
 

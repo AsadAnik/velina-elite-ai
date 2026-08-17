@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ProductStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class ProductsQueryDto {
   @ApiPropertyOptional({ example: 1, minimum: 1, default: 1 })
@@ -43,4 +43,26 @@ export class ProductsQueryDto {
   @IsOptional()
   @IsEnum(ProductStatus)
   status?: ProductStatus;
+
+  @ApiPropertyOptional({ description: 'Search term for product title/description' })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @ApiPropertyOptional({ description: 'Minimum price filter' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  min_price?: number;
+
+  @ApiPropertyOptional({ description: 'Maximum price filter' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  max_price?: number;
+
+  @ApiPropertyOptional({ description: 'Sort by field', enum: ['newest', 'price_asc', 'price_desc', 'rating'] })
+  @IsOptional()
+  @IsString()
+  sort_by?: string;
 }

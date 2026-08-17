@@ -94,6 +94,7 @@ model Product {
   sub_category    SubCategory      @relation(fields: [sub_category_id], references: [id])
   wishlists       Wishlist[]
   ratings         Rating[]
+  home_section_items HomeSectionItem[]
 }
 
 model Wishlist {
@@ -177,6 +178,51 @@ model ShippingCost {
   currency_symbol    String   @default("৳")
   created_at         DateTime @default(now())
   updated_at         DateTime @updatedAt
+}
+
+model HomeSection {
+  id           Int               @id @default(autoincrement())
+  title        String
+  subtitle     String?
+  badge_text   String?
+  description  String?           @db.Text
+  section_type String            @default("deals_grid")
+  bg_type      String            @default("gradient")
+  bg_color     String?
+  bg_gradient  String?
+  bg_image     String?
+  banner_image String?
+  banner_url   String?
+  button_text  String?
+  button_url   String?
+  order_index  Int               @default(0)
+  is_active    Boolean           @default(true)
+  max_items    Int               @default(4)
+  created_at   DateTime          @default(now())
+  updated_at   DateTime          @updatedAt
+  items        HomeSectionItem[]
+}
+
+model HomeSectionItem {
+  id          Int         @id @default(autoincrement())
+  section_id  Int
+  title       String
+  subtitle    String?
+  description String?     @db.Text
+  tag         String?
+  tag_bg      String?
+  image_url   String?
+  link_url    String?
+  button_text String?
+  bg_gradient String?
+  bg_color    String?
+  product_id  Int?
+  order_index Int         @default(0)
+  is_active   Boolean     @default(true)
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  section     HomeSection @relation(fields: [section_id], references: [id], onDelete: Cascade)
+  product     Product?    @relation(fields: [product_id], references: [id], onDelete: SetNull)
 }
 
 enum Role {

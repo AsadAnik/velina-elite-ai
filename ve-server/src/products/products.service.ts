@@ -8,10 +8,7 @@ import { ProductsQueryDto } from './dto/products-query.dto';
 
 @Injectable()
 export class ProductsService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly cloudinaryService: CloudinaryService,
-  ) { }
+  constructor(private readonly prisma: PrismaService, private readonly cloudinaryService: CloudinaryService) { }
 
   /**
    * CREATE PRODUCT SERVICE
@@ -62,32 +59,18 @@ export class ProductsService {
 
     // Detect images that were removed and delete them from Cloudinary
     if (dto.images_url !== undefined) {
-      const newImageUrls = Array.isArray(dto.images_url)
-        ? dto.images_url
-        : dto.images_url
-          ? [dto.images_url as string]
-          : [];
+      const newImageUrls = Array.isArray(dto.images_url) ? dto.images_url : dto.images_url ? [dto.images_url as string] : [];
       const oldImageUrls = product.images_url || [];
 
-      const removedImages = oldImageUrls.filter(
-        (url) => !newImageUrls.includes(url),
-      );
+      const removedImages = oldImageUrls.filter((url) => !newImageUrls.includes(url));
       if (removedImages.length > 0) {
         await this.cloudinaryService.deleteMultipleFiles(removedImages);
       }
     }
 
-    const regularPrice =
-      dto.regular_price ??
-      dto.price ??
-      product.regular_price ??
-      product.price ??
-      0;
+    const regularPrice = dto.regular_price ?? dto.price ?? product.regular_price ?? product.price ?? 0;
     const mrpPrice = dto.mrp_price ?? product.mrp_price ?? regularPrice;
-    const pricingSummary = buildPricingSummary({
-      regularPrice: Number(regularPrice),
-      mrpPrice: Number(mrpPrice),
-    });
+    const pricingSummary = buildPricingSummary({ regularPrice: Number(regularPrice), mrpPrice: Number(mrpPrice) });
 
     await this.prisma.product.update({
       where: { id },
@@ -154,13 +137,40 @@ export class ProductsService {
     category_id,
     sub_category_id,
     status,
+    search,
+    min_price,
+    max_price,
+    sort_by,
   }: ProductsQueryDto = {}) {
     const skip = (page - 1) * limit;
-    const where = {
-      ...(category_id ? { category_id } : {}),
-      ...(sub_category_id ? { sub_category_id } : {}),
+
+    const priceFilter: { gte?: number; lte?: number } = {};
+    if (min_price !== undefined && min_price !== null) priceFilter.gte = Number(min_price);
+    if (max_price !== undefined && max_price !== null) priceFilter.lte = Number(max_price);
+
+    const where: any = {
+      ...(category_id ? { category_id: Number(category_id) } : {}),
+      ...(sub_category_id ? { sub_category_id: Number(sub_category_id) } : {}),
       ...(status ? { status } : {}),
+      ...(Object.keys(priceFilter).length > 0 ? { price: priceFilter } : {}),
+      ...(search && search.trim() !== ''
+        ? {
+            OR: [
+              { title: { contains: search.trim(), mode: 'insensitive' } },
+              { description: { contains: search.trim(), mode: 'insensitive' } },
+            ],
+          }
+        : {}),
     };
+
+    let orderBy: any = { created_at: 'desc' };
+    if (sort_by === 'price_asc') {
+      orderBy = { price: 'asc' };
+    } else if (sort_by === 'price_desc') {
+      orderBy = { price: 'desc' };
+    } else if (sort_by === 'newest') {
+      orderBy = { created_at: 'desc' };
+    }
 
     const [products, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
@@ -172,7 +182,7 @@ export class ProductsService {
           sub_category: true,
           ratings: { select: { stars: true } },
         },
-        orderBy: { created_at: 'desc' },
+        orderBy,
       }),
       this.prisma.product.count({ where }),
     ]);
@@ -198,7 +208,7 @@ export class ProductsService {
   // region Find Related Products
   async findRelated(id: number, limit: number = 4) {
     const product = await this.findOne(id);
-    
+
     return this.prisma.product.findMany({
       where: {
         category_id: product.category_id,

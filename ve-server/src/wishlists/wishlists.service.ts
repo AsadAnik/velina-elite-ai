@@ -3,8 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class WishlistsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
+  /**
+   * Get User Wishlist Service
+   * @param userId user_id
+   * @returns Object
+   */
+  // region User Wishlist
   async getUserWishlist(userId: number) {
     if (!userId) {
       // Return empty array if no customer ID (e.g., admin users)
@@ -32,6 +38,13 @@ export class WishlistsService {
     }
   }
 
+  /**
+   * Add Product To Wishlist Service
+   * @param userId user_id
+   * @param productId product_id
+   * @returns Object
+   */
+  // region Add To Wishlist
   async addToWishlist(userId: number, productId: number) {
     if (!userId) {
       throw new NotFoundException('Customer ID not found in token');
@@ -71,6 +84,13 @@ export class WishlistsService {
     return { message: 'Added to wishlist' };
   }
 
+  /**
+   * Remove Product From Wishlist Service
+   * @param userId user_id
+   * @param productId product_id
+   * @returns Object
+   */
+  // region Remove From Wishlist
   async removeFromWishlist(userId: number, productId: number) {
     if (!userId) {
       throw new NotFoundException('Customer ID not found in token');

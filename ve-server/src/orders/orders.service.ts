@@ -12,6 +12,12 @@ enum PaymentMethod {
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // region CREATE ORDER
+  /**
+   * @param customerId Customer ID
+   * @param createOrderDto CreateOrderDto object containing order information
+   * @returns Order information
+   */
   async createOrder(customerId: number, createOrderDto: CreateOrderDto) {
     const { shipping_address_id, items, note } = createOrderDto;
 
@@ -150,6 +156,11 @@ export class OrdersService {
     return completeOrder;
   }
 
+  // region GET CUSTOMER ORDERS
+  /**
+   * @param customerId Customer ID
+   * @returns Orders for the specified customer
+   */
   async getCustomerOrders(customerId: number) {
     const orders = await this.prisma.order.findMany({
       where: { customer_id: customerId },
@@ -176,6 +187,12 @@ export class OrdersService {
     return orders;
   }
 
+  // region GET ORDER BY ID
+  /**
+   * @param orderId Order ID
+   * @param customerId Customer ID
+   * @returns Order information
+   */
   async getOrderById(orderId: number, customerId?: number) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
@@ -214,6 +231,10 @@ export class OrdersService {
     return order;
   }
 
+  // region GET ALL ORDERS
+  /**
+   * @returns All orders
+   */
   async getAllOrders() {
     const orders = await this.prisma.order.findMany({
       include: {
@@ -244,6 +265,12 @@ export class OrdersService {
     return orders;
   }
 
+  // region UPDATE ORDER STATUS
+  /**
+   * @param orderId Order ID
+   * @param updateOrderStatusDto UpdateOrderStatusDto object containing order status information
+   * @returns Order information
+   */
   async updateOrderStatus(orderId: number, updateOrderStatusDto: UpdateOrderStatusDto) {
     const { status, note } = updateOrderStatusDto;
 
@@ -305,6 +332,12 @@ export class OrdersService {
     return completeOrder;
   }
 
+  // region CANCEL ORDER
+  /**
+   * @param orderId Order ID
+   * @param customerId Customer ID
+   * @returns Message indicating successful cancellation
+   */
   async cancelOrder(orderId: number, customerId: number) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
@@ -360,6 +393,11 @@ export class OrdersService {
     return { message: 'Order cancelled successfully' };
   }
 
+  // region DELETE ORDER
+  /**
+   * @param orderId Order ID
+   * @returns Message indicating successful deletion
+   */
   async deleteOrder(orderId: number) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },

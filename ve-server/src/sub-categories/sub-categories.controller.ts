@@ -19,8 +19,13 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 @ApiBearerAuth()
 @Controller('sub-categories')
 export class SubCategoriesController {
-  constructor(private readonly subCategoriesService: SubCategoriesService) {}
+  constructor(private readonly subCategoriesService: SubCategoriesService) { }
 
+  /**
+   * CREATE SUB CATEGORY
+   * @param dto CreateSubCategoryDto
+   * @returns Object
+   */
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -28,6 +33,12 @@ export class SubCategoriesController {
     return this.subCategoriesService.createSubCategory(dto);
   }
 
+  /**
+   * UPDATE SUB CATEGORY
+   * @param id sub_category_id
+   * @param dto CreateSubCategoryDto
+   * @returns Object
+   */
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -35,6 +46,11 @@ export class SubCategoriesController {
     return this.subCategoriesService.updateSubCategory(id, dto);
   }
 
+  /**
+   * DELETE SUB CATEGORY
+   * @param id sub_category_id
+   * @returns Object
+   */
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -42,6 +58,10 @@ export class SubCategoriesController {
     return this.subCategoriesService.deleteSubCategory(id);
   }
 
+  /**
+   * LIST SUB CATEGORIES
+   * @returns Object
+   */
   @Get()
   findAll() {
     return this.subCategoriesService.findAllSubCategories();

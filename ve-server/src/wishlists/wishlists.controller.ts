@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Delete,
-  UseGuards,
-  Request,
-  Param,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Get, Post, Delete, UseGuards, Request, Param, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { WishlistsService } from './wishlists.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,12 +10,23 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class WishlistsController {
   constructor(private readonly wishlistsService: WishlistsService) { }
 
+  /**
+   * GET USER WISHLIST
+   * @param req request
+   * @returns Object
+   */
   @Get()
   @ApiOperation({ summary: 'Get user wishlist' })
   getUserWishlist(@Request() req) {
     return this.wishlistsService.getUserWishlist(req.user.customerId);
   }
 
+  /**
+   * ADD PRODUCT TO WISHLIST
+   * @param req request
+   * @param productId product_id
+   * @returns Object
+   */
   @Post(':productId')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Add product to wishlist' })
@@ -33,6 +34,12 @@ export class WishlistsController {
     return this.wishlistsService.addToWishlist(req.user.customerId, parseInt(productId));
   }
 
+  /**
+   * REMOVE PRODUCT FROM WISHLIST
+   * @param req request
+   * @param productId product_id
+   * @returns Object
+   */
   @Delete(':productId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove product from wishlist' })
