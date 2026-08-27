@@ -13,10 +13,12 @@ import { OrdersModule } from './orders/orders.module';
 import { ShippingCostsModule } from './shipping-costs/shipping-costs.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { HomeSectionsModule } from './home-sections/home-sections.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
     PrismaModule,
+    RedisModule,
     ProductsModule,
     CategoriesModule,
     SubCategoriesModule,

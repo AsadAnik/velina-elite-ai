@@ -1,14 +1,44 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateProductDto, ProductStatus } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { buildPricingSummary } from './pricing.util';
 import { ProductsQueryDto } from './dto/products-query.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService, private readonly cloudinaryService: CloudinaryService) { }
+  constructor(private readonly prisma: PrismaService, private readonly cloudinaryService: CloudinaryService, @Inject(CACHE_MANAGER) private readonly cache: Cache) { }
+
+
+  /**
+   * Build a unique cache key from query params.
+   * e.g. "products:list:page=1&limit=10&category_id=5"
+   * @param query 
+   * @returns 
+   */
+  // region LIST CACHE-KEY
+  private buildListCacheKey(query: ProductsQueryDto): string {
+    const parts = Object.entries(query)
+      .filter(([, v]) => v !== undefined && v !== null)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${k}=${v}`)
+      .join('&');
+    return `products:list:${parts}`;
+  }
+
+  /**
+   * Cache key for a single product: "products:details:42"
+   * @param id 
+   * @returns 
+   */
+  // region DETAILS CACHE-KEY
+  private buildDetailsCacheKey(id: number): string {
+    return `products:detail:${id}`;
+  }
+
 
   /**
    * CREATE PRODUCT SERVICE
@@ -131,17 +161,7 @@ export class ProductsService {
    * @returns Object
    */
   // region Find All Products
-  async findAll({
-    page = 1,
-    limit = 10,
-    category_id,
-    sub_category_id,
-    status,
-    search,
-    min_price,
-    max_price,
-    sort_by,
-  }: ProductsQueryDto = {}) {
+  async findAll({ page = 1, limit = 10, category_id, sub_category_id, status, search, min_price, max_price, sort_by }: ProductsQueryDto = {}) {
     const skip = (page - 1) * limit;
 
     const priceFilter: { gte?: number; lte?: number } = {};
@@ -155,11 +175,11 @@ export class ProductsService {
       ...(Object.keys(priceFilter).length > 0 ? { price: priceFilter } : {}),
       ...(search && search.trim() !== ''
         ? {
-            OR: [
-              { title: { contains: search.trim(), mode: 'insensitive' } },
-              { description: { contains: search.trim(), mode: 'insensitive' } },
-            ],
-          }
+          OR: [
+            { title: { contains: search.trim(), mode: 'insensitive' } },
+            { description: { contains: search.trim(), mode: 'insensitive' } },
+          ],
+        }
         : {}),
     };
 
