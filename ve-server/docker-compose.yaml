@@ -4,7 +4,7 @@ services:
     build:
       context: .
       target: builder
-    command: pnpm run start:dev
+    command: sh -c "pnpm prisma migrate deploy && pnpm run start:dev"
     ports:
       - '8080:8080'
     env_file:
@@ -57,7 +57,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-
 
 volumes:
   postgres_data:
