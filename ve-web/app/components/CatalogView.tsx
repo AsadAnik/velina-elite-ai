@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
@@ -8,7 +8,6 @@ import {
   ChevronDown,
   ChevronRight,
   X,
-  Sparkles,
   ArrowUpDown,
   RotateCcw,
   Check,
@@ -51,11 +50,11 @@ function transformApiToUiProduct(apiProduct: ApiProduct): UiProduct {
     rating:
       apiProduct.ratings && apiProduct.ratings.length > 0
         ? Number(
-            (
-              apiProduct.ratings.reduce((sum, r) => sum + r.stars, 0) /
-              apiProduct.ratings.length
-            ).toFixed(1)
-          )
+          (
+            apiProduct.ratings.reduce((sum, r) => sum + r.stars, 0) /
+            apiProduct.ratings.length
+          ).toFixed(1)
+        )
         : 5,
     reviewCount: apiProduct.ratings?.length || 1,
     isSale: mrp > price,
@@ -65,6 +64,7 @@ function transformApiToUiProduct(apiProduct: ApiProduct): UiProduct {
   };
 }
 
+// region CATELOG VIEW
 export default function CatalogView({ categoryId, subCategoryId, title }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -78,7 +78,9 @@ export default function CatalogView({ categoryId, subCategoryId, title }: Props)
   const [selectedSubCategory, setSelectedSubCategory] = useState<number | undefined>(subCategoryId);
   const [priceRange, setPriceRange] = useState<number>(10000);
   const [sortBy, setSortBy] = useState<string>("newest");
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>(
+    searchParams.get("search") || searchParams.get("q") || ""
+  );
   const [onlyInStock, setOnlyInStock] = useState<boolean>(false);
 
   // Pagination & Infinite Loading
@@ -95,6 +97,12 @@ export default function CatalogView({ categoryId, subCategoryId, title }: Props)
 
   // Infinite Scroll Observer ref
   const observerTarget = useRef<HTMLDivElement | null>(null);
+
+  // Sync URL search query changes
+  useEffect(() => {
+    const q = searchParams.get("search") || searchParams.get("q") || "";
+    setSearchQuery(q);
+  }, [searchParams]);
 
   // Load Categories & SubCategories
   useEffect(() => {
@@ -313,11 +321,10 @@ export default function CatalogView({ categoryId, subCategoryId, title }: Props)
           <button
             type="button"
             onClick={() => handleSelectCategory(undefined)}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
-              !selectedCategory
-                ? "bg-velina-rose/10 text-velina-rose border border-velina-rose/20"
-                : "text-zinc-600 dark:text-zinc-400 hover:bg-surface"
-            }`}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-colors ${!selectedCategory
+              ? "bg-velina-rose/10 text-velina-rose border border-velina-rose/20"
+              : "text-zinc-600 dark:text-zinc-400 hover:bg-surface"
+              }`}
           >
             <span>All Products</span>
             {!selectedCategory && <Check size={13} />}
@@ -331,11 +338,10 @@ export default function CatalogView({ categoryId, subCategoryId, title }: Props)
             return (
               <div key={cat.id} className="space-y-0.5">
                 <div
-                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
-                    isCatSelected
-                      ? "bg-velina-rose/10 text-velina-rose border border-velina-rose/20"
-                      : "text-zinc-700 dark:text-zinc-300 hover:bg-surface"
-                  }`}
+                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-colors ${isCatSelected
+                    ? "bg-velina-rose/10 text-velina-rose border border-velina-rose/20"
+                    : "text-zinc-700 dark:text-zinc-300 hover:bg-surface"
+                    }`}
                 >
                   <button
                     type="button"
@@ -356,9 +362,8 @@ export default function CatalogView({ categoryId, subCategoryId, title }: Props)
                     >
                       <ChevronDown
                         size={13}
-                        className={`transition-transform duration-200 ${
-                          isExpanded ? "rotate-180" : ""
-                        }`}
+                        className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                          }`}
                       />
                     </button>
                   )}
@@ -377,11 +382,10 @@ export default function CatalogView({ categoryId, subCategoryId, title }: Props)
                             setSelectedCategory(cat.id);
                             handleSelectSubCategory(sub.id);
                           }}
-                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors ${
-                            isSubSelected
-                              ? "bg-velina-peach/40 dark:bg-velina-rose/20 text-velina-rose font-black"
-                              : "text-muted hover:text-foreground hover:bg-surface"
-                          }`}
+                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors ${isSubSelected
+                            ? "bg-velina-peach/40 dark:bg-velina-rose/20 text-velina-rose font-black"
+                            : "text-muted hover:text-foreground hover:bg-surface"
+                            }`}
                         >
                           <span className="truncate">{sub.name}</span>
                           {isSubSelected && <Check size={12} />}
@@ -425,6 +429,7 @@ export default function CatalogView({ categoryId, subCategoryId, title }: Props)
     </div>
   );
 
+  // region MAIN UI
   return (
     <main className="min-h-screen bg-background text-foreground py-6 md:py-10">
       <div className="max-w-7xl mx-auto px-4 md:px-6">

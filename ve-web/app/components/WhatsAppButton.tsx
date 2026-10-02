@@ -18,6 +18,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
+// region WHATS-APP BUTTON
 export default function WhatsAppButton() {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return null;

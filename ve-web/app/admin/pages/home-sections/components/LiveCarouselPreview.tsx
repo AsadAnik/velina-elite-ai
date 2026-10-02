@@ -1,23 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-  ArrowRight,
-  Smartphone,
-  Monitor,
-  Eye,
-  ExternalLink,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, Smartphone, Monitor, Eye } from "lucide-react";
 import { HomeSection, HomeSectionItem } from "@/types/home-section";
 
 interface LiveCarouselPreviewProps {
   section: HomeSection;
 }
 
+// region LIVE CAROUSEL PREVIEW
 export default function LiveCarouselPreview({ section }: LiveCarouselPreviewProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [deviceView, setDeviceView] = useState<"desktop" | "mobile">("desktop");
@@ -48,6 +40,7 @@ export default function LiveCarouselPreview({ section }: LiveCarouselPreviewProp
 
   const activeSlide = slides[currentSlide % slides.length];
 
+  // region MAIN UI
   return (
     <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-md">
       {/* Preview Header & View Mode Switcher */}
@@ -71,11 +64,10 @@ export default function LiveCarouselPreview({ section }: LiveCarouselPreviewProp
           <button
             type="button"
             onClick={() => setDeviceView("desktop")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${
-              deviceView === "desktop"
-                ? "bg-white dark:bg-zinc-900 text-foreground shadow-xs"
-                : "text-muted hover:text-foreground"
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${deviceView === "desktop"
+              ? "bg-white dark:bg-zinc-900 text-foreground shadow-xs"
+              : "text-muted hover:text-foreground"
+              }`}
           >
             <Monitor size={13} />
             <span className="hidden sm:inline">Desktop</span>
@@ -84,11 +76,10 @@ export default function LiveCarouselPreview({ section }: LiveCarouselPreviewProp
           <button
             type="button"
             onClick={() => setDeviceView("mobile")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${
-              deviceView === "mobile"
-                ? "bg-white dark:bg-zinc-900 text-foreground shadow-xs"
-                : "text-muted hover:text-foreground"
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${deviceView === "mobile"
+              ? "bg-white dark:bg-zinc-900 text-foreground shadow-xs"
+              : "text-muted hover:text-foreground"
+              }`}
           >
             <Smartphone size={13} />
             <span className="hidden sm:inline">Mobile</span>
@@ -99,11 +90,10 @@ export default function LiveCarouselPreview({ section }: LiveCarouselPreviewProp
       {/* Stage Container */}
       <div className="p-4 sm:p-6 bg-zinc-950 flex items-center justify-center overflow-hidden">
         <div
-          className={`relative rounded-2xl overflow-hidden transition-all duration-300 shadow-2xl border border-white/10 ${
-            deviceView === "mobile"
-              ? "w-[340px] h-[400px]"
-              : "w-full max-w-4xl h-[340px] sm:h-[380px]"
-          }`}
+          className={`relative rounded-2xl overflow-hidden transition-all duration-300 shadow-2xl border border-white/10 ${deviceView === "mobile"
+            ? "w-[340px] h-[400px]"
+            : "w-full max-w-4xl h-[340px] sm:h-[380px]"
+            }`}
         >
           {/* Peeking Carousel Slide Layout */}
           <div className="w-full h-full relative overflow-hidden bg-zinc-950">
@@ -117,9 +107,8 @@ export default function LiveCarouselPreview({ section }: LiveCarouselPreviewProp
               />
             ) : (
               <div
-                className={`w-full h-full bg-gradient-to-br ${
-                  activeSlide?.bg_gradient || "from-purple-950 via-zinc-900 to-black"
-                }`}
+                className={`w-full h-full bg-gradient-to-br ${activeSlide?.bg_gradient || "from-purple-950 via-zinc-900 to-black"
+                  }`}
               />
             )}
 
@@ -131,9 +120,8 @@ export default function LiveCarouselPreview({ section }: LiveCarouselPreviewProp
               <div className="max-w-md space-y-2.5">
                 {activeSlide?.tag && (
                   <span
-                    className={`inline-block text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-md ${
-                      activeSlide.tag_bg || "bg-velina-rose text-white"
-                    }`}
+                    className={`inline-block text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-md ${activeSlide.tag_bg || "bg-velina-rose text-white"
+                      }`}
                   >
                     {activeSlide.tag}
                   </span>
@@ -189,9 +177,8 @@ export default function LiveCarouselPreview({ section }: LiveCarouselPreviewProp
                       key={idx}
                       type="button"
                       onClick={() => setCurrentSlide(idx)}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        currentSlide === idx ? "w-6 bg-velina-rose" : "w-1.5 bg-white/40"
-                      }`}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${currentSlide === idx ? "w-6 bg-velina-rose" : "w-1.5 bg-white/40"
+                        }`}
                     />
                   ))}
                 </div>

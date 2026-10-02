@@ -3,22 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Package,
-  ShoppingBag,
-  Users,
-  Tag,
-  BarChart3,
-  Settings,
-  ChevronLeft,
-  Sparkles,
-  Layers,
-  List,
-  Truck,
-  Star,
-  LayoutTemplate,
-} from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Users, Tag, BarChart3, Settings, ChevronLeft, Sparkles, Layers, List, Truck, Star, LayoutTemplate } from "lucide-react";
 
 const BRAND_LOGO = "/1776256116755-removebg-preview.png";
 
@@ -44,12 +29,8 @@ type AdminSidebarProps = {
   onNavigate?: () => void;
 };
 
-export default function AdminSidebar({
-  collapsed,
-  mobileOpen,
-  onToggle,
-  onNavigate,
-}: AdminSidebarProps) {
+// region ADMIN SIDEBAR
+export default function AdminSidebar({ collapsed, mobileOpen, onToggle, onNavigate }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const isActive = (href: string, exact?: boolean) =>
@@ -57,11 +38,9 @@ export default function AdminSidebar({
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 flex w-[85vw] max-w-[280px] flex-col border-r border-border bg-white transition-all duration-300 dark:bg-zinc-950 sm:w-64 ${
-        mobileOpen ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0 ${
-        collapsed ? "lg:w-18" : "lg:w-64"
-      }`}
+      className={`fixed inset-y-0 left-0 z-40 flex w-[85vw] max-w-[280px] flex-col border-r border-border bg-white transition-all duration-300 dark:bg-zinc-950 sm:w-64 ${mobileOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 ${collapsed ? "lg:w-18" : "lg:w-64"
+        }`}
     >
       <div className="flex h-16 items-center justify-between border-b border-border px-4">
         <Link href="/admin" className="flex items-center gap-2.5 overflow-hidden">
@@ -110,18 +89,16 @@ export default function AdminSidebar({
               href={item.href}
               title={collapsed ? item.label : undefined}
               onClick={() => onNavigate?.()}
-              className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-200 ${
-                active
-                  ? "bg-linear-to-r from-velina-rose/15 to-velina-gold/10 text-velina-rose shadow-sm"
-                  : "text-muted hover:bg-surface hover:text-foreground"
-              }`}
+              className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-200 ${active
+                ? "bg-linear-to-r from-velina-rose/15 to-velina-gold/10 text-velina-rose shadow-sm"
+                : "text-muted hover:bg-surface hover:text-foreground"
+                }`}
             >
               <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                  active
-                    ? "bg-velina-rose text-white shadow-md shadow-velina-rose/30"
-                    : "bg-surface-2 text-muted group-hover:bg-velina-peach/50 group-hover:text-velina-rose dark:group-hover:bg-velina-rose/10"
-                }`}
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${active
+                  ? "bg-velina-rose text-white shadow-md shadow-velina-rose/30"
+                  : "bg-surface-2 text-muted group-hover:bg-velina-peach/50 group-hover:text-velina-rose dark:group-hover:bg-velina-rose/10"
+                  }`}
               >
                 <Icon size={16} />
               </span>
@@ -133,9 +110,8 @@ export default function AdminSidebar({
 
       <div className="border-t border-border p-3">
         <div
-          className={`rounded-2xl bg-linear-to-br from-velina-rose/10 via-velina-peach/30 to-velina-gold/10 dark:from-velina-rose/15 dark:via-zinc-900 dark:to-velina-gold/10 p-3 ${
-            collapsed ? "text-center" : ""
-          }`}
+          className={`rounded-2xl bg-linear-to-br from-velina-rose/10 via-velina-peach/30 to-velina-gold/10 dark:from-velina-rose/15 dark:via-zinc-900 dark:to-velina-gold/10 p-3 ${collapsed ? "text-center" : ""
+            }`}
         >
           <Sparkles
             size={18}
@@ -152,9 +128,8 @@ export default function AdminSidebar({
         </div>
         <Link
           href="/"
-          className={`mt-3 flex items-center justify-center gap-2 rounded-xl border border-border bg-surface py-2 text-xs font-bold text-muted hover:border-velina-rose/40 hover:text-velina-rose transition-colors ${
-            collapsed ? "px-2" : "px-3"
-          }`}
+          className={`mt-3 flex items-center justify-center gap-2 rounded-xl border border-border bg-surface py-2 text-xs font-bold text-muted hover:border-velina-rose/40 hover:text-velina-rose transition-colors ${collapsed ? "px-2" : "px-3"
+            }`}
         >
           {!collapsed && "←"} Storefront
         </Link>

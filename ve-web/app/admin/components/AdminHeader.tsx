@@ -10,6 +10,7 @@ type AdminHeaderProps = {
   onMenuClick: () => void;
 };
 
+// region ADMIN HEADER
 export default function AdminHeader({ title, subtitle, onMenuClick }: AdminHeaderProps) {
   const router = useRouter();
 

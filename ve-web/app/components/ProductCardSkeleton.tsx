@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-
 export default function ProductCardSkeleton() {
   return (
     <div className="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-xs animate-pulse flex flex-col justify-between">

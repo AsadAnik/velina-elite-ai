@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
 
+// region CONCERN CATEGORIES
 export default function ConcernCategories() {
   const concerns = [
     {
@@ -37,6 +37,7 @@ export default function ConcernCategories() {
     },
   ];
 
+  // region MAIN UI
   return (
     <section className="py-12 bg-background w-full max-w-7xl mx-auto px-4 md:px-6">
       {/* Section Title */}
@@ -60,7 +61,7 @@ export default function ConcernCategories() {
           >
             {/* The Gold/Yellow container card */}
             <div className="w-full aspect-[4/5] rounded-3xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex flex-col justify-between overflow-hidden shadow-xs group-hover:shadow-md transition-all duration-300 transform group-hover:-translate-y-1.5">
-              
+
               {/* Top half: Rounded model portrait */}
               <div className="w-full h-[65%] relative overflow-hidden bg-zinc-200">
                 <Image

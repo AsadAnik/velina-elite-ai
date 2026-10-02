@@ -10,6 +10,7 @@ type Props = {
   product: Product;
 };
 
+// region PRODUCT CARD
 export default function ProductCard({ product }: Props) {
   const { addToCart, toggleWishlist, isInWishlist, cart } = useStore();
   const inWishlist = isInWishlist(product.id);
@@ -31,6 +32,7 @@ export default function ProductCard({ product }: Props) {
     addToCart(product);
   };
 
+  // region MAIN UI
   return (
     <Link href={`/products/${product.id}`} className="group bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md dark:hover:shadow-zinc-950 transition-all duration-300 flex flex-col">
       {/* Image area */}
@@ -61,11 +63,10 @@ export default function ProductCard({ product }: Props) {
         {/* Wishlist toggle */}
         <button
           onClick={handleWishlistClick}
-          className={`absolute bottom-2.5 right-2.5 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ${
-            inWishlist
-              ? "bg-velina-rose text-white scale-110"
-              : "bg-white/90 dark:bg-zinc-900/90 text-zinc-400 hover:text-velina-rose"
-          }`}
+          className={`absolute bottom-2.5 right-2.5 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-200 ${inWishlist
+            ? "bg-velina-rose text-white scale-110"
+            : "bg-white/90 dark:bg-zinc-900/90 text-zinc-400 hover:text-velina-rose"
+            }`}
           aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart size={15} className={inWishlist ? "fill-white" : ""} />
@@ -120,11 +121,10 @@ export default function ProductCard({ product }: Props) {
         <button
           onClick={handleAddToCart}
           disabled={isOutOfStock || isAtStockLimit}
-          className={`mt-3 flex items-center justify-center gap-2 text-white text-xs font-bold py-2.5 rounded-full transition-colors duration-200 w-full ${
-            isOutOfStock || isAtStockLimit
-              ? "bg-zinc-300 dark:bg-zinc-700 cursor-not-allowed"
-              : "bg-zinc-900 dark:bg-zinc-700 dark:hover:bg-velina-rose hover:bg-velina-rose"
-          }`}
+          className={`mt-3 flex items-center justify-center gap-2 text-white text-xs font-bold py-2.5 rounded-full transition-colors duration-200 w-full ${isOutOfStock || isAtStockLimit
+            ? "bg-zinc-300 dark:bg-zinc-700 cursor-not-allowed"
+            : "bg-zinc-900 dark:bg-zinc-700 dark:hover:bg-velina-rose hover:bg-velina-rose"
+            }`}
         >
           <ShoppingCart size={13} />
           {isOutOfStock ? "OUT OF STOCK" : isAtStockLimit ? "STOCK LIMIT REACHED" : "ADD TO CART"}

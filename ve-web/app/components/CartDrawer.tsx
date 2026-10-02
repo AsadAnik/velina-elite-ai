@@ -6,6 +6,7 @@ import { X, Plus, Minus, ShoppingBag, ArrowRight, Trash2, AlertCircle } from "lu
 import { useStore } from "@/lib/store";
 import { useState, useEffect } from "react";
 
+// region CART DRAWER
 export default function CartDrawer() {
   const {
     isCartDrawerOpen,
@@ -31,21 +32,20 @@ export default function CartDrawer() {
     updateQty(productId, newQuantity);
   };
 
+  // region MAIN UI
   return (
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 ${
-          isCartDrawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 ${isCartDrawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
         onClick={closeCartDrawer}
       />
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-sm bg-white dark:bg-zinc-950 z-[70] shadow-2xl dark:shadow-zinc-950 flex flex-col transition-transform duration-300 ease-in-out ${
-          isCartDrawerOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-full max-w-sm bg-white dark:bg-zinc-950 z-[70] shadow-2xl dark:shadow-zinc-950 flex flex-col transition-transform duration-300 ease-in-out ${isCartDrawerOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
@@ -124,11 +124,10 @@ export default function CartDrawer() {
                         <button
                           onClick={() => handleUpdateQty(product.id, quantity + 1)}
                           disabled={product.stockQuantity !== undefined && quantity >= product.stockQuantity}
-                          className={`px-2.5 py-1 transition-colors ${
-                            product.stockQuantity !== undefined && quantity >= product.stockQuantity
+                          className={`px-2.5 py-1 transition-colors ${product.stockQuantity !== undefined && quantity >= product.stockQuantity
                               ? "text-zinc-300 dark:text-zinc-600 cursor-not-allowed"
                               : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                          }`}
+                            }`}
                         >
                           <Plus size={12} />
                         </button>

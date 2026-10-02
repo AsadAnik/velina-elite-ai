@@ -17,6 +17,7 @@ interface ToastProps {
   onClose: (id: string) => void;
 }
 
+// region TOAST ITEM
 function ToastItem({ toast, onClose }: ToastProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -46,6 +47,7 @@ function ToastItem({ toast, onClose }: ToastProps) {
     info: "text-blue-800 dark:text-blue-300",
   };
 
+  // region MAIN UI
   return (
     <div
       className={`flex items-start gap-3 px-4 py-3 rounded-xl border shadow-lg transition-all duration-300 animate-in slide-in-from-right ${bgColors[toast.type]}`}
@@ -69,6 +71,7 @@ interface ToastContainerProps {
   onClose: (id: string) => void;
 }
 
+// region TOAST CONTAINER
 export default function ToastContainer({ toasts, onClose }: ToastContainerProps) {
   return (
     <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
