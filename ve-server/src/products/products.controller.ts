@@ -159,6 +159,21 @@ export class ProductsController {
   }
 
   /**
+   * SEARCH PRODUCTS SERVICE (Live Autocomplete / Dropdown)
+   * @param q search query string
+   * @param limit maximum results to return
+   */
+  @Get('search')
+  @ApiOperation({
+    summary: 'Search products by query keyword (title, description, category, subcategory)',
+  })
+  @ApiQuery({ name: 'q', required: true, type: String })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  search(@Query('q') q?: string, @Query('limit') limit?: number) {
+    return this.productsService.search(q, limit ? Number(limit) : 8);
+  }
+
+  /**
    * GET PRODUCT BY ID SERVICE
    * @param id product_id
    * @returns Object
