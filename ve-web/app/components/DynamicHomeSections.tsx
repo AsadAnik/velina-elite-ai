@@ -1,29 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowRight,
-  Sparkles,
-  ChevronLeft,
-  ChevronRight,
-  Heart,
-  ShoppingCart,
-  Star,
-  Package,
-} from "lucide-react";
+import { ArrowRight, Sparkles, ChevronLeft, ChevronRight, Heart, ShoppingCart } from "lucide-react";
 import { fetchApi } from "@/lib/api";
 import { HomeSection, HomeSectionItem } from "@/types/home-section";
 import DealsSection from "./DealsSection";
 import PromoBanners from "./PromoBanners";
 import { useStore } from "@/lib/store";
 
-export default function DynamicHomeSections({
-  onHeroRendered,
-}: {
-  onHeroRendered?: (hasDynamicHero: boolean) => void;
-}) {
+// region DYNAMIC HOME
+export default function DynamicHomeSections({ onHeroRendered }: { onHeroRendered?: (hasDynamicHero: boolean) => void; }) {
   const [sections, setSections] = useState<HomeSection[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -58,6 +46,7 @@ export default function DynamicHomeSections({
     );
   }
 
+  // region MAIN UI
   return (
     <div className="space-y-12 md:space-y-16 py-6 md:py-10">
       {nonHeroSections.map((section) => (
@@ -67,6 +56,7 @@ export default function DynamicHomeSections({
   );
 }
 
+// region RENDER SECTION
 function RenderSection({ section }: { section: HomeSection }) {
   // Determine background styling
   let bgStyle: React.CSSProperties = {};
@@ -110,6 +100,7 @@ function RenderSection({ section }: { section: HomeSection }) {
   return <DealsGridSection section={section} bgClasses={bgClasses} bgStyle={bgStyle} />;
 }
 
+// region HERO-SLIDER SECTION
 // 1. Dynamic Hero Slider Carousel
 function DynamicHeroSlider({ section }: { section: HomeSection }) {
   const items = section.items || [];
@@ -165,9 +156,8 @@ function DynamicHeroSlider({ section }: { section: HomeSection }) {
               />
             ) : (
               <div
-                className={`w-full h-full bg-gradient-to-br ${
-                  slide.bg_gradient || "from-purple-950 via-zinc-900 to-black"
-                }`}
+                className={`w-full h-full bg-gradient-to-br ${slide.bg_gradient || "from-purple-950 via-zinc-900 to-black"
+                  }`}
               />
             )}
 
@@ -179,9 +169,8 @@ function DynamicHeroSlider({ section }: { section: HomeSection }) {
               <div className="max-w-xl space-y-3">
                 {slide.tag && (
                   <span
-                    className={`inline-block text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md ${
-                      slide.tag_bg || "bg-velina-rose text-white"
-                    }`}
+                    className={`inline-block text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md ${slide.tag_bg || "bg-velina-rose text-white"
+                      }`}
                   >
                     {slide.tag}
                   </span>
@@ -242,9 +231,8 @@ function DynamicHeroSlider({ section }: { section: HomeSection }) {
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
                 aria-label={`Go to slide ${idx + 1}`}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  currentSlide === idx ? "w-7 bg-velina-rose" : "w-2 bg-white/50"
-                }`}
+                className={`h-2 rounded-full transition-all duration-300 ${currentSlide === idx ? "w-7 bg-velina-rose" : "w-2 bg-white/50"
+                  }`}
               />
             ))}
           </div>
@@ -254,16 +242,9 @@ function DynamicHeroSlider({ section }: { section: HomeSection }) {
   );
 }
 
+// region PRODUCT-SHOWCASE SECTION
 // 2. Product Showcase Grid Section
-function ProductShowcaseSection({
-  section,
-  bgClasses,
-  bgStyle,
-}: {
-  section: HomeSection;
-  bgClasses: string;
-  bgStyle: React.CSSProperties;
-}) {
+function ProductShowcaseSection({ section, bgClasses, bgStyle }: { section: HomeSection; bgClasses: string; bgStyle: React.CSSProperties; }) {
   const items = section.items || [];
   const { addToCart, toggleWishlist, isInWishlist } = useStore();
 
@@ -310,9 +291,8 @@ function ProductShowcaseSection({
                 <div className="relative aspect-square overflow-hidden bg-zinc-50 dark:bg-zinc-800/60">
                   {item.tag && (
                     <span
-                      className={`absolute top-3 left-3 z-10 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full shadow-xs ${
-                        item.tag_bg || "bg-velina-rose text-white"
-                      }`}
+                      className={`absolute top-3 left-3 z-10 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full shadow-xs ${item.tag_bg || "bg-velina-rose text-white"
+                        }`}
                     >
                       {item.tag}
                     </span>
@@ -350,11 +330,10 @@ function ProductShowcaseSection({
                           stockQuantity: product.stock_quantity ?? 100,
                         });
                       }}
-                      className={`absolute bottom-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all ${
-                        inWishlist
-                          ? "bg-velina-rose text-white scale-110"
-                          : "bg-white/90 dark:bg-zinc-900/90 text-zinc-400 hover:text-velina-rose"
-                      }`}
+                      className={`absolute bottom-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all ${inWishlist
+                        ? "bg-velina-rose text-white scale-110"
+                        : "bg-white/90 dark:bg-zinc-900/90 text-zinc-400 hover:text-velina-rose"
+                        }`}
                     >
                       <Heart size={15} className={inWishlist ? "fill-white" : ""} />
                     </button>
@@ -431,16 +410,9 @@ function ProductShowcaseSection({
   );
 }
 
+// region DEALS-GRID SECTION
 // 3. Deals Grid Section (Card based)
-function DealsGridSection({
-  section,
-  bgClasses,
-  bgStyle,
-}: {
-  section: HomeSection;
-  bgClasses: string;
-  bgStyle: React.CSSProperties;
-}) {
+function DealsGridSection({ section, bgClasses, bgStyle }: { section: HomeSection; bgClasses: string; bgStyle: React.CSSProperties; }) {
   const items = section.items || [];
 
   return (
@@ -466,9 +438,8 @@ function DealsGridSection({
 
         {/* Responsive Grid */}
         <div
-          className={`grid grid-cols-1 sm:grid-cols-2 ${
-            items.length >= 4 ? "lg:grid-cols-4" : items.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"
-          } gap-5 md:gap-6`}
+          className={`grid grid-cols-1 sm:grid-cols-2 ${items.length >= 4 ? "lg:grid-cols-4" : items.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"
+            } gap-5 md:gap-6`}
         >
           {items.map((item) => {
             const cardBg = item.bg_gradient || "from-blue-600 to-indigo-800";
@@ -496,9 +467,8 @@ function DealsGridSection({
 
                   {item.tag && (
                     <span
-                      className={`absolute top-4 left-4 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-xs ${
-                        item.tag_bg || "bg-cyan-400 text-slate-900"
-                      }`}
+                      className={`absolute top-4 left-4 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-xs ${item.tag_bg || "bg-cyan-400 text-slate-900"
+                        }`}
                     >
                       {item.tag}
                     </span>
@@ -540,16 +510,9 @@ function DealsGridSection({
   );
 }
 
+// region PROMO-BANNER SECTION
 // 4. Wide Campaign Promo Banner Section
-function PromoBannerSection({
-  section,
-  bgClasses,
-  bgStyle,
-}: {
-  section: HomeSection;
-  bgClasses: string;
-  bgStyle: React.CSSProperties;
-}) {
+function PromoBannerSection({ section, bgClasses, bgStyle }: { section: HomeSection; bgClasses: string; bgStyle: React.CSSProperties; }) {
   const targetLink = section.button_url || section.banner_url || "/products";
 
   return (
@@ -607,16 +570,9 @@ function PromoBannerSection({
   );
 }
 
+// region BANNER GRID SECTION
 // 5. Banner Grid Section
-function BannerGridSection({
-  section,
-  bgClasses,
-  bgStyle,
-}: {
-  section: HomeSection;
-  bgClasses: string;
-  bgStyle: React.CSSProperties;
-}) {
+function BannerGridSection({ section, bgClasses, bgStyle }: { section: HomeSection; bgClasses: string; bgStyle: React.CSSProperties; }) {
   const items = section.items || [];
 
   return (
@@ -647,16 +603,14 @@ function BannerGridSection({
             <Link
               key={item.id}
               href={targetLink}
-              className={`group relative rounded-3xl overflow-hidden p-6 sm:p-8 bg-gradient-to-br ${
-                item.bg_gradient || "from-pink-600 to-rose-800"
-              } text-white shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between min-h-[200px] transform hover:-translate-y-1`}
+              className={`group relative rounded-3xl overflow-hidden p-6 sm:p-8 bg-gradient-to-br ${item.bg_gradient || "from-pink-600 to-rose-800"
+                } text-white shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between min-h-[200px] transform hover:-translate-y-1`}
             >
               <div className="z-10">
                 {item.tag && (
                   <span
-                    className={`inline-block text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-2 ${
-                      item.tag_bg || "bg-white text-zinc-900"
-                    }`}
+                    className={`inline-block text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-2 ${item.tag_bg || "bg-white text-zinc-900"
+                      }`}
                   >
                     {item.tag}
                   </span>

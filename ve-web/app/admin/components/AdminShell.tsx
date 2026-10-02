@@ -10,6 +10,7 @@ type AdminShellProps = {
   children: React.ReactNode;
 };
 
+// region ADMIN SHELL
 export default function AdminShell({ title, subtitle, children }: AdminShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -32,9 +33,8 @@ export default function AdminShell({ title, subtitle, children }: AdminShellProp
       />
 
       <div
-        className={`transition-all duration-300 ${
-          sidebarCollapsed ? "lg:pl-18" : "lg:pl-64"
-        }`}
+        className={`transition-all duration-300 ${sidebarCollapsed ? "lg:pl-18" : "lg:pl-64"
+          }`}
       >
         <AdminHeader
           title={title}

@@ -11,6 +11,7 @@ type Props = {
   totalCount: number;
 };
 
+// region CATEGORY SIDEBAR
 export default function CategorySidebar({ currentCategory, currentSubSlug, totalCount }: Props) {
   const [priceRange, setPriceRange] = useState(6800);
   const [openCat, setOpenCat] = useState<string>(currentCategory.slug);
@@ -48,11 +49,10 @@ export default function CategorySidebar({ currentCategory, currentSubSlug, total
               <li key={cat.slug}>
                 <button
                   onClick={() => setOpenCat(isOpen ? "" : cat.slug)}
-                  className={`w-full flex items-center justify-between px-2 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                    isCurrent
-                      ? "text-velina-rose"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-                  }`}
+                  className={`w-full flex items-center justify-between px-2 py-2 rounded-lg text-sm font-semibold transition-colors ${isCurrent
+                    ? "text-velina-rose"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    }`}
                 >
                   <span>{cat.name}</span>
                   <div className="flex items-center gap-2">
@@ -63,17 +63,15 @@ export default function CategorySidebar({ currentCategory, currentSubSlug, total
                     )}
                     <ChevronDown
                       size={14}
-                      className={`transition-transform duration-200 text-zinc-400 dark:text-zinc-600 ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
+                      className={`transition-transform duration-200 text-zinc-400 dark:text-zinc-600 ${isOpen ? "rotate-180" : ""
+                        }`}
                     />
                   </div>
                 </button>
 
                 <div
-                  className={`overflow-hidden transition-all duration-300 ${
-                    isOpen ? "max-h-96" : "max-h-0"
-                  }`}
+                  className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-96" : "max-h-0"
+                    }`}
                 >
                   <ul className="ml-3 mt-1 space-y-0.5 border-l-2 border-zinc-100 dark:border-zinc-800 pl-3">
                     {cat.subcategories.map((sub) => {
@@ -82,19 +80,17 @@ export default function CategorySidebar({ currentCategory, currentSubSlug, total
                         <li key={sub.slug}>
                           <Link
                             href={`/category/${cat.slug}/${sub.slug}`}
-                            className={`flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition-colors ${
-                              isActiveSub
-                                ? "text-velina-rose font-bold bg-velina-peach/30 dark:bg-velina-rose/10"
-                                : "text-zinc-600 dark:text-zinc-400 hover:text-velina-rose font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                            }`}
+                            className={`flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition-colors ${isActiveSub
+                              ? "text-velina-rose font-bold bg-velina-peach/30 dark:bg-velina-rose/10"
+                              : "text-zinc-600 dark:text-zinc-400 hover:text-velina-rose font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                              }`}
                           >
                             <span>{sub.name}</span>
                             <span
-                              className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                                isActiveSub
-                                  ? "bg-velina-rose text-white font-black"
-                                  : "text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800"
-                              }`}
+                              className={`text-[10px] px-1.5 py-0.5 rounded-full ${isActiveSub
+                                ? "bg-velina-rose text-white font-black"
+                                : "text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800"
+                                }`}
                             >
                               {sub.count}
                             </span>
@@ -112,6 +108,7 @@ export default function CategorySidebar({ currentCategory, currentSubSlug, total
     </div>
   );
 
+  // region MAIN UI
   return (
     <>
       {/* Mobile filter trigger */}
@@ -134,16 +131,14 @@ export default function CategorySidebar({ currentCategory, currentSubSlug, total
 
       {/* Mobile bottom sheet backdrop */}
       <div
-        className={`fixed inset-0 bg-black/50 z-[65] md:hidden transition-opacity duration-300 ${
-          showMobileFilter ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black/50 z-[65] md:hidden transition-opacity duration-300 ${showMobileFilter ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
         onClick={() => setShowMobileFilter(false)}
       />
       {/* Mobile bottom sheet */}
       <div
-        className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-950 z-[70] rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto transition-transform duration-300 md:hidden ${
-          showMobileFilter ? "translate-y-0" : "translate-y-full"
-        }`}
+        className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-950 z-[70] rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto transition-transform duration-300 md:hidden ${showMobileFilter ? "translate-y-0" : "translate-y-full"
+          }`}
       >
         <div className="sticky top-0 bg-white dark:bg-zinc-950 flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 rounded-t-3xl">
           <h2 className="font-black text-zinc-900 dark:text-zinc-100">Filters</h2>

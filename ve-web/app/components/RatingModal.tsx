@@ -10,6 +10,7 @@ interface RatingModalProps {
   onSuccess: () => void;
 }
 
+// region RATING MODAL
 export default function RatingModal({ productId, productTitle, onClose, onSuccess }: RatingModalProps) {
   const [stars, setStars] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
@@ -22,7 +23,7 @@ export default function RatingModal({ productId, productTitle, onClose, onSucces
       toast.error('Please select a star rating');
       return;
     }
-    
+
     setLoading(true);
     try {
       await fetchApi('/ratings', {
@@ -42,6 +43,7 @@ export default function RatingModal({ productId, productTitle, onClose, onSucces
     }
   };
 
+  // region MAIN UI
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -51,10 +53,10 @@ export default function RatingModal({ productId, productTitle, onClose, onSucces
             <X size={20} />
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6">
           <p className="font-medium text-center mb-6">{productTitle}</p>
-          
+
           <div className="flex justify-center gap-2 mb-8">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -67,11 +69,10 @@ export default function RatingModal({ productId, productTitle, onClose, onSucces
               >
                 <Star
                   size={40}
-                  className={`${
-                    star <= (hoveredStar || stars)
-                      ? 'fill-yellow-400 text-yellow-400'
-                      : 'text-zinc-300 dark:text-zinc-700'
-                  } transition-colors`}
+                  className={`${star <= (hoveredStar || stars)
+                    ? 'fill-yellow-400 text-yellow-400'
+                    : 'text-zinc-300 dark:text-zinc-700'
+                    } transition-colors`}
                 />
               </button>
             ))}

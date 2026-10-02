@@ -58,6 +58,7 @@ const defaultStaticSlides = [
   },
 ];
 
+// region HERO-CAROUSEL
 export default function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [dynamicSlides, setDynamicSlides] = useState<HomeSectionItem[] | null>(null);
@@ -100,6 +101,7 @@ export default function HeroCarousel() {
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
   };
 
+  // region MAIN UI
   // If dynamic slides exist from dashboard
   if (dynamicSlides && dynamicSlides.length > 0) {
     return (
@@ -117,14 +119,14 @@ export default function HeroCarousel() {
                   src={slide.image_url}
                   alt={slide.title || "Hero banner"}
                   fill
+                  sizes="100vw"
                   priority={i === 0}
                   className="object-cover object-center brightness-90 dark:brightness-75"
                 />
               ) : (
                 <div
-                  className={`w-full h-full bg-gradient-to-br ${
-                    slide.bg_gradient || "from-purple-950 via-zinc-900 to-black"
-                  }`}
+                  className={`w-full h-full bg-gradient-to-br ${slide.bg_gradient || "from-purple-950 via-zinc-900 to-black"
+                    }`}
                 />
               )}
 
@@ -136,9 +138,8 @@ export default function HeroCarousel() {
                 <div className="max-w-xl space-y-3">
                   {slide.tag && (
                     <span
-                      className={`inline-block text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md ${
-                        slide.tag_bg || "bg-velina-rose text-white"
-                      }`}
+                      className={`inline-block text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md ${slide.tag_bg || "bg-velina-rose text-white"
+                        }`}
                     >
                       {slide.tag}
                     </span>
@@ -199,9 +200,8 @@ export default function HeroCarousel() {
                   key={idx}
                   onClick={() => setCurrentSlide(idx)}
                   aria-label={`Go to slide ${idx + 1}`}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    currentSlide === idx ? "w-7 bg-velina-rose" : "w-2 bg-white/50"
-                  }`}
+                  className={`h-2 rounded-full transition-all duration-300 ${currentSlide === idx ? "w-7 bg-velina-rose" : "w-2 bg-white/50"
+                    }`}
                 />
               ))}
             </div>
@@ -228,6 +228,7 @@ export default function HeroCarousel() {
                   src={slide.src || ""}
                   alt="Velina Elite Cover"
                   fill
+                  sizes="100vw"
                   className="object-cover object-center"
                   priority
                 />
@@ -261,7 +262,7 @@ export default function HeroCarousel() {
                           key={aIdx}
                           className="w-24 h-40 rounded-t-full bg-zinc-800 border border-white/10 relative overflow-hidden shadow-md group"
                         >
-                          <Image src={arch.src} alt={arch.label} fill className="object-cover opacity-80 group-hover:scale-110 transition-transform duration-500" />
+                          <Image src={arch.src} alt={arch.label} fill sizes="96px" className="object-cover opacity-80 group-hover:scale-110 transition-transform duration-500" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-2">
                             <span className="text-[9px] font-bold text-white uppercase">{arch.label}</span>
                           </div>
@@ -280,6 +281,7 @@ export default function HeroCarousel() {
                   src={slide.src || ""}
                   alt={slide.title || "Banner"}
                   fill
+                  sizes="100vw"
                   className="object-cover object-center"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
@@ -331,9 +333,8 @@ export default function HeroCarousel() {
             key={idx}
             onClick={() => setCurrentSlide(idx)}
             aria-label={`Go to slide ${idx + 1}`}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              currentSlide === idx ? "w-7 bg-velina-rose" : "w-2 bg-white/50"
-            }`}
+            className={`h-2 rounded-full transition-all duration-300 ${currentSlide === idx ? "w-7 bg-velina-rose" : "w-2 bg-white/50"
+              }`}
           />
         ))}
       </div>

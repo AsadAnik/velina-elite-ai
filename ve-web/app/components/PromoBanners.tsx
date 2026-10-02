@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import Image from "next/image";
-import { Plus, Percent, Check, HelpCircle } from "lucide-react";
+import { useState } from "react";
+import { Percent, Check } from "lucide-react";
 
+// region PROMO BANNERS
 export default function PromoBanners() {
   // Stepper State for Extra Discount Calculator
   const [selectedItems, setSelectedItems] = useState({
@@ -29,9 +29,10 @@ export default function PromoBanners() {
 
   const isAllSelected = selectedItems.facewash && selectedItems.moisturizer && selectedItems.sunscreen;
 
+  // region MAIN UI
   return (
     <section className="py-12 bg-background w-full max-w-7xl mx-auto px-4 md:px-6 space-y-16 transition-colors duration-300">
-      
+
       {/* 1. Large Brand Campaign Banner (Lux Bodywash style) */}
       <div className="w-full rounded-3xl overflow-hidden bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-800 text-white relative shadow-md p-6 md:p-10 flex flex-col md:flex-row justify-between items-center gap-6 min-h-[160px]">
         {/* Decorative Circles */}
@@ -65,7 +66,7 @@ export default function PromoBanners() {
       {/* 2. Interactive Extra Discount Multi-Step Calculator */}
       <div className="w-full rounded-3xl bg-gradient-to-r from-velina-rose to-velina-gold text-white p-6 md:p-8 shadow-md relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
-        
+
         {/* Banner Title */}
         <div className="flex flex-col md:flex-row justify-between items-center md:items-start border-b border-white/20 pb-6 mb-6 gap-4 z-10 relative">
           <div className="text-center md:text-left">
@@ -88,23 +89,21 @@ export default function PromoBanners() {
 
         {/* Interactive Steps Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center z-10 relative">
-          
+
           {/* Stepper Choices */}
           <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            
+
             {/* Step 1: Facewash */}
             <button
               onClick={() => toggleItem("facewash")}
-              className={`p-4 rounded-2xl border transition-all text-left flex flex-col justify-between h-36 relative ${
-                selectedItems.facewash
-                  ? "bg-white text-zinc-900 border-white shadow-lg"
-                  : "bg-white/10 hover:bg-white/15 text-white border-white/20"
-              }`}
+              className={`p-4 rounded-2xl border transition-all text-left flex flex-col justify-between h-36 relative ${selectedItems.facewash
+                ? "bg-white text-zinc-900 border-white shadow-lg"
+                : "bg-white/10 hover:bg-white/15 text-white border-white/20"
+                }`}
             >
               <div className="flex justify-between items-start w-full">
-                <span className={`text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full ${
-                  selectedItems.facewash ? "bg-pink-100 text-velina-rose" : "bg-white/20 text-white"
-                }`}>
+                <span className={`text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full ${selectedItems.facewash ? "bg-pink-100 text-velina-rose" : "bg-white/20 text-white"
+                  }`}>
                   STEP 1
                 </span>
                 {selectedItems.facewash && (
@@ -122,16 +121,14 @@ export default function PromoBanners() {
             {/* Step 2: Moisturizer */}
             <button
               onClick={() => toggleItem("moisturizer")}
-              className={`p-4 rounded-2xl border transition-all text-left flex flex-col justify-between h-36 relative ${
-                selectedItems.moisturizer
-                  ? "bg-white text-zinc-900 border-white shadow-lg"
-                  : "bg-white/10 hover:bg-white/15 text-white border-white/20"
-              }`}
+              className={`p-4 rounded-2xl border transition-all text-left flex flex-col justify-between h-36 relative ${selectedItems.moisturizer
+                ? "bg-white text-zinc-900 border-white shadow-lg"
+                : "bg-white/10 hover:bg-white/15 text-white border-white/20"
+                }`}
             >
               <div className="flex justify-between items-start w-full">
-                <span className={`text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full ${
-                  selectedItems.moisturizer ? "bg-pink-100 text-velina-rose" : "bg-white/20 text-white"
-                }`}>
+                <span className={`text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full ${selectedItems.moisturizer ? "bg-pink-100 text-velina-rose" : "bg-white/20 text-white"
+                  }`}>
                   STEP 2
                 </span>
                 {selectedItems.moisturizer && (
@@ -149,16 +146,14 @@ export default function PromoBanners() {
             {/* Step 3: Sunscreen */}
             <button
               onClick={() => toggleItem("sunscreen")}
-              className={`p-4 rounded-2xl border transition-all text-left flex flex-col justify-between h-36 relative ${
-                selectedItems.sunscreen
-                  ? "bg-white text-zinc-900 border-white shadow-lg"
-                  : "bg-white/10 hover:bg-white/15 text-white border-white/20"
-              }`}
+              className={`p-4 rounded-2xl border transition-all text-left flex flex-col justify-between h-36 relative ${selectedItems.sunscreen
+                ? "bg-white text-zinc-900 border-white shadow-lg"
+                : "bg-white/10 hover:bg-white/15 text-white border-white/20"
+                }`}
             >
               <div className="flex justify-between items-start w-full">
-                <span className={`text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full ${
-                  selectedItems.sunscreen ? "bg-pink-100 text-velina-rose" : "bg-white/20 text-white"
-                }`}>
+                <span className={`text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full ${selectedItems.sunscreen ? "bg-pink-100 text-velina-rose" : "bg-white/20 text-white"
+                  }`}>
                   STEP 3
                 </span>
                 {selectedItems.sunscreen && (
@@ -186,14 +181,13 @@ export default function PromoBanners() {
                 <span className="text-lg font-bold text-white uppercase">OFF</span>
               </div>
             </div>
-            
+
             <button
               disabled={getDiscountPercent() === 0}
-              className={`mt-4 w-full py-2.5 rounded-full text-xs font-black tracking-widest transition-all ${
-                getDiscountPercent() > 0
-                  ? "bg-white text-velina-rose hover:bg-zinc-50 active:scale-95 cursor-pointer shadow-md"
-                  : "bg-white/10 text-white/40 cursor-not-allowed border border-white/10"
-              }`}
+              className={`mt-4 w-full py-2.5 rounded-full text-xs font-black tracking-widest transition-all ${getDiscountPercent() > 0
+                ? "bg-white text-velina-rose hover:bg-zinc-50 active:scale-95 cursor-pointer shadow-md"
+                : "bg-white/10 text-white/40 cursor-not-allowed border border-white/10"
+                }`}
             >
               {isAllSelected ? "ADD FULL SET TO BAG" : "ADD SELECTED TO BAG"}
             </button>
@@ -250,7 +244,7 @@ export default function PromoBanners() {
             >
               {/* Background Gradient */}
               <div className={`absolute inset-0 bg-gradient-to-br ${item.color} z-0`}></div>
-              
+
               {/* Wave Graphic overlay */}
               <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px] z-0"></div>
 

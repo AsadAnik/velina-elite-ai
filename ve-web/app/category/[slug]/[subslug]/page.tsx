@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, use, Suspense } from "react";
+import { useEffect, useState, use, Suspense } from "react";
 import Navbar from "@/app/components/Navbar";
 import CatalogView from "@/app/components/CatalogView";
 import Footer from "@/app/components/Footer";
@@ -9,11 +9,8 @@ import StickyCartWidget from "@/app/components/StickyCartWidget";
 import { fetchApi } from "@/lib/api";
 import { SubCategory } from "@/types/sub-category";
 
-export default function SubCategoryPage({
-  params,
-}: {
-  params: Promise<{ slug: string; subslug: string }>;
-}) {
+// region SUB-CATEGORY
+export default function SubCategoryPage({ params }: { params: Promise<{ slug: string; subslug: string }>; }) {
   const resolvedParams = use(params);
   const [subCategory, setSubCategory] = useState<SubCategory | null>(null);
 
@@ -38,6 +35,7 @@ export default function SubCategoryPage({
     loadSubCategory();
   }, [resolvedParams.subslug]);
 
+  // region MAIN UI
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-sans selection:bg-velina-rose selection:text-white transition-colors duration-300">
       <Navbar />

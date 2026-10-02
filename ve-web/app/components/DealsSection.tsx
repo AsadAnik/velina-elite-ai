@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
+// region DEALS SECTION
 export default function DealsSection() {
   const deals = [
     {
@@ -52,6 +52,7 @@ export default function DealsSection() {
     },
   ];
 
+  // region MAIN UI
   return (
     <section className="py-12 bg-zinc-50 dark:bg-zinc-900/40 w-full transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 md:px-6">

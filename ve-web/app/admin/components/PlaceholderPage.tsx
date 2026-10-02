@@ -6,6 +6,7 @@ type PlaceholderPageProps = {
   subtitle: string;
 };
 
+// region PLACEHOLDER PAGE
 export default function PlaceholderPage({ title, subtitle }: PlaceholderPageProps) {
   return (
     <AdminShell title={title} subtitle={subtitle}>

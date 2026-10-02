@@ -3,17 +3,18 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Heart, User, ShoppingBag, Menu, X, ChevronDown, ChevronRight, LogOut } from "lucide-react";
+import { Heart, User, ShoppingBag, Menu, X, ChevronDown, ChevronRight, LogOut } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { fetchApi } from "@/lib/api";
 import { Category } from "@/types/category";
 import ThemeToggle from "./ThemeToggle";
+import SearchBar from "./SearchBar";
 
 const BRAND_LOGO = "/1776256116755-removebg-preview.png";
 
+// region NAVBAR
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileOpenCat, setMobileOpenCat] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -49,6 +50,7 @@ export default function Navbar() {
 
   useEffect(() => { fetchApi<Category[]>("/categories").then(setCategories).catch(() => setCategories([])); }, []);
 
+  // region MAIN UI
   return (
     <>
       <header className="w-full bg-white dark:bg-zinc-950 shadow-sm dark:shadow-zinc-900 sticky top-0 z-50 transition-colors duration-300">
@@ -99,18 +101,7 @@ export default function Navbar() {
 
           {/* Search (desktop) */}
           <div className="flex-1 max-w-xl hidden md:block">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search products, brands, concerns..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 focus:border-velina-rose dark:focus:border-velina-rose focus:bg-white dark:focus:bg-zinc-800 rounded-full py-2.5 pl-5 pr-11 text-sm outline-none transition-all duration-200 text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
-              />
-              <button className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-velina-rose transition-colors">
-                <Search size={18} />
-              </button>
-            </div>
+            <SearchBar placeholder="Search products, brands, concerns..." />
           </div>
 
           {/* Actions */}
@@ -173,18 +164,7 @@ export default function Navbar() {
 
         {/* Mobile search */}
         <div className="px-4 pb-3 md:hidden">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 focus:border-velina-rose rounded-full py-2 pl-4 pr-10 text-xs outline-none text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 transition-all"
-            />
-            <button className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-400">
-              <Search size={16} />
-            </button>
-          </div>
+          <SearchBar isMobile placeholder="Search products, brands..." />
         </div>
 
         {/* Desktop category bar */}
