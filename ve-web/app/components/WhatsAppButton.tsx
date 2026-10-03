@@ -65,6 +65,9 @@ export default function WhatsAppButton() {
   };
 
   const [isDragging, setIsDragging] = useState(false);
+  const [isOverDismissZone, setIsOverDismissZone] = useState(false);
+  const isOverDismissZoneRef = useRef(false);
+
   const [ready, setReady] = useState(false);
   const didMove = useRef(false);
 
@@ -124,9 +127,10 @@ export default function WhatsAppButton() {
       offset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
 
       // Pointer capture: browser routes ALL subsequent pointer events here
-      // even if finger/cursor moves off element or off screen
       el.setPointerCapture(e.pointerId);
       setIsDragging(true);
+      setIsOverDismissZone(false);
+      isOverDismissZoneRef.current = false;
     };
 
     const onPointerMove = (e: PointerEvent) => {
@@ -142,12 +146,38 @@ export default function WhatsAppButton() {
         left: Math.max(8, Math.min(e.clientX - offset.current.x, window.innerWidth - elW - 8)),
       };
       setPos(newPos);
+
+      // Messenger-style drop target check (bottom center of viewport)
+      const targetX = window.innerWidth / 2;
+      const targetY = window.innerHeight - 70;
+      const dx = e.clientX - targetX;
+      const dy = e.clientY - targetY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const isNearDismiss = distance < 95;
+
+      isOverDismissZoneRef.current = isNearDismiss;
+      setIsOverDismissZone(isNearDismiss);
     };
 
     const onPointerUp = (e: PointerEvent) => {
-      if (!el.hasPointerCapture(e.pointerId)) return;
-      el.releasePointerCapture(e.pointerId);
+      if (el.hasPointerCapture(e.pointerId)) {
+        try {
+          el.releasePointerCapture(e.pointerId);
+        } catch {}
+      }
+
       setIsDragging(false);
+
+      // Check if dropped into Messenger dismiss zone
+      if (isOverDismissZoneRef.current) {
+        setWhatsAppHidden(true);
+        setIsOverDismissZone(false);
+        isOverDismissZoneRef.current = false;
+        return;
+      }
+
+      setIsOverDismissZone(false);
+      isOverDismissZoneRef.current = false;
       localStorage.setItem("velina_wa_pos", JSON.stringify(posRef.current));
 
       // If it was just a tap (no movement), open WhatsApp
@@ -156,75 +186,113 @@ export default function WhatsAppButton() {
       }
     };
 
+    const onPointerCancel = (e: PointerEvent) => {
+      if (el.hasPointerCapture(e.pointerId)) {
+        try {
+          el.releasePointerCapture(e.pointerId);
+        } catch {}
+      }
+      setIsDragging(false);
+      setIsOverDismissZone(false);
+      isOverDismissZoneRef.current = false;
+    };
+
     el.addEventListener("pointerdown", onPointerDown);
     el.addEventListener("pointermove", onPointerMove);
     el.addEventListener("pointerup", onPointerUp);
-    el.addEventListener("pointercancel", onPointerUp);
+    el.addEventListener("pointercancel", onPointerCancel);
+    el.addEventListener("lostpointercapture", onPointerCancel);
 
     return () => {
       el.removeEventListener("pointerdown", onPointerDown);
       el.removeEventListener("pointermove", onPointerMove);
       el.removeEventListener("pointerup", onPointerUp);
-      el.removeEventListener("pointercancel", onPointerUp);
+      el.removeEventListener("pointercancel", onPointerCancel);
+      el.removeEventListener("lostpointercapture", onPointerCancel);
     };
-  }, []); // empty deps — safe because we use refs for all mutable values
+  }, [setWhatsAppHidden]);
 
   if (pathname.startsWith("/admin")) return null;
 
   // Always render the div (never unmount it) so the dragEl ref stays valid
   // and pointer listeners don't need re-attaching after hide/unhide.
-  // Visibility is controlled by CSS display below.
   const hidden = isWhatsAppHidden || settings.is_whatsapp_active === false;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: pos.top,
-        left: pos.left,
-        zIndex: 9999,
-        visibility: ready && !hidden ? "visible" : "hidden",
-        pointerEvents: ready && !hidden ? "auto" : "none",
-        userSelect: "none",
-        WebkitUserSelect: "none",
-      }}
-    >
-      <div className="relative group">
+    <>
+      <div
+        style={{
+          position: "fixed",
+          top: pos.top,
+          left: pos.left,
+          zIndex: 9999,
+          visibility: ready && !hidden ? "visible" : "hidden",
+          pointerEvents: ready && !hidden ? "auto" : "none",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+        }}
+      >
+        <div className="relative group">
 
-        {/* Hide button */}
-        <button
-          style={{ position: "absolute", top: -8, right: -8, zIndex: 10 }}
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={() => setWhatsAppHidden(true)}
-          className="bg-white dark:bg-zinc-800 text-zinc-500 hover:text-velina-rose border border-zinc-200 dark:border-zinc-700 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-          title="Hide chat button"
-        >
-          <X size={14} />
-        </button>
+          {/* Draggable button — touch-action:none prevents scroll interference */}
+          <div
+            ref={dragEl}
+            style={{ touchAction: "none", cursor: isDragging ? "grabbing" : "grab" }}
+            className={`relative flex items-center gap-3 rounded-full bg-[#25D366] pl-4 pr-5 py-3.5 text-white select-none transition-all duration-200 ${
+              isOverDismissZone
+                ? "bg-rose-500 scale-90 opacity-70 shadow-none"
+                : isDragging
+                ? "shadow-[0_20px_60px_rgba(37,211,102,0.8)] scale-[1.06]"
+                : "shadow-[0_8px_30px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_40px_rgba(37,211,102,0.6)]"
+            }`}
+          >
+            <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20 pointer-events-none" />
+            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 ring-2 ring-white/25 pointer-events-none">
+              <WhatsAppIcon className="h-5 w-5" />
+            </span>
+            <span className="relative hidden sm:flex flex-col items-start leading-none pointer-events-none">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">
+                Need help?
+              </span>
+              <span className="mt-1 text-sm font-black tracking-wide">Chat on WhatsApp</span>
+            </span>
+          </div>
 
-        {/* Draggable button — touch-action:none prevents scroll interference */}
+        </div>
+      </div>
+
+      {/* Messenger-style Drag-to-Dismiss Drop Zone (Appears when dragging on touch/desktop) */}
+      {isDragging && ready && !hidden && (
         <div
-          ref={dragEl}
-          style={{ touchAction: "none", cursor: isDragging ? "grabbing" : "grab" }}
-          className={`relative flex items-center gap-3 rounded-full bg-[#25D366] pl-4 pr-5 py-3.5 text-white select-none transition-all duration-200 ${
-            isDragging
-              ? "shadow-[0_20px_60px_rgba(37,211,102,0.8)] scale-[1.06]"
-              : "shadow-[0_8px_30px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_40px_rgba(37,211,102,0.6)]"
+          style={{
+            position: "fixed",
+            bottom: 24,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 10000,
+          }}
+          className={`flex flex-col items-center justify-center gap-1.5 transition-all duration-200 pointer-events-none ${
+            isOverDismissZone ? "scale-110" : "scale-100"
           }`}
         >
-          <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20 pointer-events-none" />
-          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 ring-2 ring-white/25 pointer-events-none">
-            <WhatsAppIcon className="h-5 w-5" />
-          </span>
-          <span className="relative hidden sm:flex flex-col items-start leading-none pointer-events-none">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">
-              Need help?
-            </span>
-            <span className="mt-1 text-sm font-black tracking-wide">Chat on WhatsApp</span>
+          <div
+            className={`flex h-14 w-14 items-center justify-center rounded-full border-2 shadow-2xl transition-all ${
+              isOverDismissZone
+                ? "bg-rose-600 border-white text-white shadow-rose-600/70 animate-bounce scale-110"
+                : "bg-zinc-900/90 border-zinc-700 text-zinc-300 backdrop-blur-md"
+            }`}
+          >
+            <X size={isOverDismissZone ? 24 : 20} className="stroke-[3]" />
+          </div>
+          <span
+            className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md transition-colors ${
+              isOverDismissZone ? "bg-rose-600 text-white" : "bg-zinc-900/90 text-zinc-300 backdrop-blur-md"
+            }`}
+          >
+            {isOverDismissZone ? "Release to Hide" : "Drag here to hide"}
           </span>
         </div>
-
-      </div>
-    </div>
+      )}
+    </>
   );
 }
