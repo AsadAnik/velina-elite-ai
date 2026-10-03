@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { SubCategoriesService } from './sub-categories.service';
 import { CreateSubCategoryDto } from 'src/sub-categories/dto/create-sub-category.dto';
@@ -14,7 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
 @ApiBearerAuth()
 @Controller('sub-categories')
@@ -42,7 +43,7 @@ export class SubCategoriesController {
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
-  update(@Param('id') id: number, @Body() dto: CreateSubCategoryDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateSubCategoryDto) {
     return this.subCategoriesService.updateSubCategory(id, dto);
   }
 
@@ -54,7 +55,7 @@ export class SubCategoriesController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
-  delete(@Param('id') id: number) {
+  delete(@Param('id', ParseIntPipe) id: number) {
     return this.subCategoriesService.deleteSubCategory(id);
   }
 
@@ -65,5 +66,16 @@ export class SubCategoriesController {
   @Get()
   findAll() {
     return this.subCategoriesService.findAllSubCategories();
+  }
+
+  /**
+   * FIND ONE SUB CATEGORY
+   * @param id sub_category_id
+   * @returns Object
+   */
+  @Get(':id')
+  @ApiOperation({ summary: 'Find One Sub Category' })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.subCategoriesService.findOneSubCategory(id);
   }
 }

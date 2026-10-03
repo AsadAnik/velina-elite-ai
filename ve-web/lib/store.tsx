@@ -25,6 +25,14 @@ type User = {
   role: string;
 };
 
+type SiteSettingsState = {
+  site_name: string;
+  site_logo: string;
+  whatsapp_number?: string;
+  whatsapp_message?: string;
+  is_whatsapp_active?: boolean;
+};
+
 type State = {
   cart: CartItem[];
   wishlist: Product[];
@@ -34,6 +42,8 @@ type State = {
   token: string | null;
   toasts: Toast[];
   buyNowItem: CartItem | null;
+  isWhatsAppHidden: boolean;
+  siteSettings: SiteSettingsState;
 };
 
 type Action =
@@ -50,7 +60,9 @@ type Action =
   | { type: "ADD_TOAST"; toast: Toast }
   | { type: "REMOVE_TOAST"; toastId: string }
   | { type: "SET_BUY_NOW"; item: CartItem }
-  | { type: "CLEAR_BUY_NOW" };
+  | { type: "CLEAR_BUY_NOW" }
+  | { type: "SET_WHATSAPP_HIDDEN"; hidden: boolean }
+  | { type: "SET_SITE_SETTINGS"; settings: SiteSettingsState };
 
 // ─── Reducer ─────────────────────────────────────────────────────────────────
 
@@ -125,6 +137,10 @@ function reducer(state: State, action: Action): State {
       return { ...state, buyNowItem: action.item };
     case "CLEAR_BUY_NOW":
       return { ...state, buyNowItem: null };
+    case "SET_WHATSAPP_HIDDEN":
+      return { ...state, isWhatsAppHidden: action.hidden };
+    case "SET_SITE_SETTINGS":
+      return { ...state, siteSettings: { ...state.siteSettings, ...action.settings } };
     default:
       return state;
   }
@@ -150,9 +166,19 @@ type StoreContextValue = State & {
   removeToast: (toastId: string) => void;
   setBuyNow: (product: Product, quantity?: number) => void;
   clearBuyNow: () => void;
+  setWhatsAppHidden: (hidden: boolean) => void;
+  refreshSiteSettings: () => Promise<void>;
 };
 
 const StoreContext = createContext<StoreContextValue | null>(null);
+
+const DEFAULT_SITE_SETTINGS: SiteSettingsState = {
+  site_name: "Velina Elite",
+  site_logo: "/1776256116755-removebg-preview.png",
+  whatsapp_number: "8801347375533",
+  whatsapp_message: "Hello! I have a question about Velina Elite.",
+  is_whatsapp_active: true,
+};
 
 const initialState: State = {
   cart: [],
@@ -163,6 +189,8 @@ const initialState: State = {
   token: null,
   toasts: [],
   buyNowItem: null,
+  isWhatsAppHidden: false,
+  siteSettings: DEFAULT_SITE_SETTINGS,
 };
 
 // Load cart from localStorage
@@ -187,11 +215,21 @@ const loadWishlistFromStorage = (): Product[] => {
   }
 };
 
+const loadWhatsAppHiddenFromStorage = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem('velina_whatsapp_hidden') === 'true';
+  } catch {
+    return false;
+  }
+};
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, {
     ...initialState,
     cart: typeof window !== 'undefined' ? loadCartFromStorage() : [],
     wishlist: typeof window !== 'undefined' ? loadWishlistFromStorage() : [],
+    isWhatsAppHidden: typeof window !== 'undefined' ? loadWhatsAppHiddenFromStorage() : false,
   });
 
   // Initialize auth state from localStorage
@@ -342,11 +380,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "CLEAR_BUY_NOW" });
   }, []);
 
+  const setWhatsAppHidden = useCallback((hidden: boolean) => {
+    dispatch({ type: "SET_WHATSAPP_HIDDEN", hidden });
+  }, []);
 
+  const refreshSiteSettings = useCallback(async () => {
+    try {
+      const data = await fetchApi<SiteSettingsState>("/site-settings");
+      if (data) {
+        dispatch({ type: "SET_SITE_SETTINGS", settings: data });
+      }
+    } catch (e) {
+      console.error("Failed to fetch site settings in store:", e);
+    }
+  }, []);
 
-
-
-
+  // Fetch site settings on mount
+  useEffect(() => {
+    refreshSiteSettings();
+  }, [refreshSiteSettings]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
@@ -357,6 +409,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem('velina_wishlist', JSON.stringify(state.wishlist));
   }, [state.wishlist]);
+
+  // Save whatsapp hidden state
+  useEffect(() => {
+    localStorage.setItem('velina_whatsapp_hidden', String(state.isWhatsAppHidden));
+  }, [state.isWhatsAppHidden]);
 
   const cartTotal = state.cart.reduce(
     (sum, i) => sum + i.product.salePrice * i.quantity,
@@ -385,6 +442,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         removeToast,
         setBuyNow,
         clearBuyNow,
+        setWhatsAppHidden,
+        refreshSiteSettings,
       }}
     >
       {children}

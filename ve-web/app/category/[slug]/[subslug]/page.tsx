@@ -14,26 +14,38 @@ export default function SubCategoryPage({ params }: { params: Promise<{ slug: st
   const resolvedParams = use(params);
   const [subCategory, setSubCategory] = useState<SubCategory | null>(null);
 
+  const rawCatId = Number(resolvedParams.slug.split("-")[0]);
+  const parsedCatId = !isNaN(rawCatId) ? rawCatId : undefined;
+
+  const rawSubId = Number(resolvedParams.subslug.split("-")[0]);
+  const parsedSubId = !isNaN(rawSubId) ? rawSubId : undefined;
+
   useEffect(() => {
     async function loadSubCategory() {
       try {
-        const subId = Number(resolvedParams.subslug.split("-")[0]);
-        if (!isNaN(subId)) {
-          const res = await fetchApi<SubCategory>(`/sub-categories/${subId}`);
+        if (parsedSubId) {
+          const res = await fetchApi<SubCategory>(`/sub-categories/${parsedSubId}`);
           setSubCategory(res);
         } else {
           const allSubs = await fetchApi<SubCategory[]>("/sub-categories");
           const found = allSubs.find(
-            (s) => s.name.toLowerCase() === resolvedParams.subslug.toLowerCase()
+            (s) => s.name.toLowerCase() === resolvedParams.subslug.toLowerCase() || String(s.id) === resolvedParams.subslug
           );
           if (found) setSubCategory(found);
         }
       } catch (err) {
-        console.error("Could not load subcategory", err);
+        console.error("Could not load subcategory by ID, trying fallback search", err);
+        try {
+          const allSubs = await fetchApi<SubCategory[]>("/sub-categories");
+          const found = allSubs.find(
+            (s) => s.id === parsedSubId || s.name.toLowerCase() === resolvedParams.subslug.toLowerCase()
+          );
+          if (found) setSubCategory(found);
+        } catch {}
       }
     }
     loadSubCategory();
-  }, [resolvedParams.subslug]);
+  }, [resolvedParams.subslug, parsedSubId]);
 
   // region MAIN UI
   return (
@@ -49,8 +61,8 @@ export default function SubCategoryPage({ params }: { params: Promise<{ slug: st
           }
         >
           <CatalogView
-            categoryId={subCategory?.category_id}
-            subCategoryId={subCategory?.id}
+            categoryId={subCategory?.category_id || parsedCatId}
+            subCategoryId={subCategory?.id || parsedSubId}
             title={subCategory?.name || "Sub-Category Products"}
           />
         </Suspense>

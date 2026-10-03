@@ -1,6 +1,8 @@
 "use client";
 
 import { ArrowUp } from "lucide-react";
+import { useStore } from "@/lib/store";
+import Image from "next/image";
 
 // Inline SVG components to ensure dependency compatibility
 const FacebookIcon = () => (
@@ -31,6 +33,9 @@ const InstagramIcon = () => (
 );
 
 export default function Footer() {
+  const { siteSettings } = useStore();
+  const brandName = siteSettings?.site_name || "VELINA ELITE";
+  const logoSrc = siteSettings?.site_logo;
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -49,9 +54,9 @@ export default function Footer() {
         {/* Column 1: Brand & Socials */}
         <div className="col-span-2 md:col-span-1 space-y-6">
           <a href="#" className="flex flex-col">
-            <span className="text-2xl font-black tracking-widest text-white">VELINA ELITE</span>
+            <span className="text-2xl font-black tracking-widest text-white uppercase">{brandName}</span>
             <span className="text-[8px] text-zinc-500 font-bold tracking-widest -mt-1 uppercase">
-              BD BEAUTY PORTAL
+              BEAUTY PORTAL
             </span>
           </a>
           <ul className="space-y-2 text-xs font-semibold">
@@ -166,7 +171,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="text-[11px] text-zinc-500 font-medium text-center md:text-right">
-          Copyright © 2026 Velina Elite BD. All Rights Reserved.
+          Copyright © 2026 {brandName}. All Rights Reserved.
         </div>
       </div>
 

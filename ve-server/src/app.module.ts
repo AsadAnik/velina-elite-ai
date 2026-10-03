@@ -13,6 +13,7 @@ import { OrdersModule } from './orders/orders.module';
 import { ShippingCostsModule } from './shipping-costs/shipping-costs.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { HomeSectionsModule } from './home-sections/home-sections.module';
+import { SiteSettingsModule } from './site-settings/site-settings.module';
 import { RedisModule } from './redis/redis.module';
 
 @Module({
@@ -30,6 +31,7 @@ import { RedisModule } from './redis/redis.module';
     ShippingCostsModule,
     RatingsModule,
     HomeSectionsModule,
+    SiteSettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

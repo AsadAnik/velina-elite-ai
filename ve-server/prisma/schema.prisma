@@ -257,3 +257,15 @@ enum OrderStatus {
 enum PaymentMethod {
   cod
 }
+
+model SiteSetting {
+  id                 Int      @id @default(autoincrement())
+  site_name          String   @default("Velina Elite")
+  site_logo          String?  @default("/1776256116755-removebg-preview.png")
+  whatsapp_number    String   @default("8801347375533")
+  whatsapp_message   String?  @default("Hello! I have a question about Velina Elite.")
+  is_whatsapp_active Boolean  @default(true)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+}
+
