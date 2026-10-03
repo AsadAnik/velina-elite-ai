@@ -241,11 +241,14 @@ export default function CatalogView({ categoryId, subCategoryId, title }: Props)
   const activeCategoryObj = categoriesList.find((c) => c.id === selectedCategory);
   const activeSubCategoryObj = subCategoriesList.find((sc) => sc.id === selectedSubCategory);
 
-  const displayTitle =
-    title ||
-    activeSubCategoryObj?.name ||
-    activeCategoryObj?.name ||
-    "All Beauty & Skincare Products";
+  let displayTitle = "All Products";
+  if (selectedSubCategory) {
+    displayTitle = activeSubCategoryObj?.name || (title !== "All Products" ? title : undefined) || "Sub-Category Products";
+  } else if (selectedCategory) {
+    displayTitle = activeCategoryObj?.name || "Category Products";
+  } else if (searchQuery.trim()) {
+    displayTitle = `Search Results for "${searchQuery}"`;
+  }
 
   // Sidebar Filter Content (Shared between desktop and mobile drawer)
   const FilterSidebarContent = () => (

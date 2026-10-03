@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, User, ShoppingBag, Menu, X, ChevronDown, ChevronRight, LogOut } from "lucide-react";
+import { Heart, User, ShoppingBag, Menu, X, ChevronDown, ChevronRight, LogOut, MessageCircle } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { fetchApi } from "@/lib/api";
 import { Category } from "@/types/category";
@@ -20,7 +20,9 @@ export default function Navbar() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [mounted, setMounted] = useState(false);
   const dropdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { cartCount, openCartDrawer, user, logout } = useStore();
+  const { cartCount, openCartDrawer, user, logout, isWhatsAppHidden, setWhatsAppHidden, siteSettings } = useStore();
+  const logoSrc = siteSettings?.site_logo || BRAND_LOGO;
+  const brandName = siteSettings?.site_name || "Velina Elite";
 
   useEffect(() => {
     setMounted(true);
@@ -46,18 +48,6 @@ export default function Navbar() {
   return (
     <>
       <header className="w-full bg-white dark:bg-zinc-950 shadow-sm dark:shadow-zinc-900 sticky top-0 z-50 transition-colors duration-300">
-        {/* Top info strip */}
-        <div className="bg-zinc-100 dark:bg-zinc-900 py-1.5 px-4 text-xs flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 transition-colors">
-          <div className="text-zinc-500 dark:text-zinc-400 mx-auto sm:mx-0">
-            Welcome to{" "}
-            <span className="font-bold text-velina-gold">Velina Elite BD</span>{" "}
-            — Premium Beauty Shopping Portal
-          </div>
-          <div className="hidden sm:block text-zinc-400 dark:text-zinc-500 font-medium">
-            Hotline: +880 9612-444888
-          </div>
-        </div>
-
         {/* Main header row */}
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-[5px] flex items-center justify-between gap-3">
           {/* Hamburger (mobile) */}
@@ -72,22 +62,16 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="relative block h-12 w-32 shrink-0 overflow-hidden sm:w-36 md:h-14 md:w-44 lg:w-48"
+              className="relative block h-10 sm:h-12 w-32 sm:w-40 md:w-48 shrink-0 overflow-hidden"
             >
               <Image
-                src={BRAND_LOGO}
-                alt="Velina Elite BD"
+                src={logoSrc}
+                alt={brandName}
                 fill
-                sizes="(max-width: 768px) 144px, 192px"
-                className="object-contain object-left origin-left scale-[1.75] md:scale-[2] dark:invert dark:brightness-95 pt-2"
+                sizes="(max-width: 768px) 140px, 200px"
+                className="object-contain object-left dark:invert dark:brightness-95"
                 priority
               />
-            </Link>
-            <Link
-              href="#"
-              className="hidden md:inline-block text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:text-velina-rose tracking-wider transition-colors ml-2 border-l border-zinc-200 dark:border-zinc-700 pl-4"
-            >
-              BRANDS
             </Link>
           </div>
 
@@ -98,6 +82,17 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {mounted && isWhatsAppHidden && (
+              <button
+                onClick={() => setWhatsAppHidden(false)}
+                className="hidden md:flex items-center gap-1.5 border border-[#25D366]/20 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] px-2.5 sm:px-3.5 py-2 rounded-full text-xs font-bold transition-all"
+                title="Show WhatsApp Chat"
+              >
+                <MessageCircle size={14} />
+                <span className="hidden sm:inline">CHAT</span>
+              </button>
+            )}
+
             {/* Theme toggle */}
             <ThemeToggle />
 
@@ -239,13 +234,13 @@ export default function Navbar() {
       >
         {/* Drawer header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
-          <Link href="/" className="relative block h-12 w-36 shrink-0 overflow-hidden">
+          <Link href="/" className="relative block h-10 w-32 sm:w-36 shrink-0 overflow-hidden">
             <Image
-              src={BRAND_LOGO}
-              alt="Velina Elite BD"
+              src={logoSrc}
+              alt={brandName}
               fill
               sizes="144px"
-              className="object-contain object-left origin-left scale-[1.75] dark:invert dark:brightness-95"
+              className="object-contain object-left dark:invert dark:brightness-95"
             />
           </Link>
           <div className="flex items-center gap-2">
@@ -312,6 +307,17 @@ export default function Navbar() {
 
         {/* Drawer footer */}
         <div className="px-5 py-4 border-t border-zinc-100 dark:border-zinc-800 flex gap-3 flex-wrap">
+          {mounted && isWhatsAppHidden && (
+            <button
+              onClick={() => {
+                setWhatsAppHidden(false);
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex-1 flex items-center justify-center gap-2 border border-[#25D366]/20 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 py-2.5 rounded-full text-xs font-bold transition-colors w-full mb-1"
+            >
+              <MessageCircle size={14} /> WhatsApp Chat
+            </button>
+          )}
           {user ? (
             <>
               <Link

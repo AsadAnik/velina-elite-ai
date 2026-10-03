@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useStore } from "@/lib/store";
 import { LayoutDashboard, Package, ShoppingBag, Users, Tag, BarChart3, Settings, ChevronLeft, Sparkles, Layers, List, Truck, Star, LayoutTemplate } from "lucide-react";
 
 const BRAND_LOGO = "/1776256116755-removebg-preview.png";
@@ -32,6 +33,9 @@ type AdminSidebarProps = {
 // region ADMIN SIDEBAR
 export default function AdminSidebar({ collapsed, mobileOpen, onToggle, onNavigate }: AdminSidebarProps) {
   const pathname = usePathname();
+  const { siteSettings } = useStore();
+  const logoSrc = siteSettings?.site_logo || BRAND_LOGO;
+  const brandName = siteSettings?.site_name || "Velina Elite";
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);
@@ -46,8 +50,8 @@ export default function AdminSidebar({ collapsed, mobileOpen, onToggle, onNaviga
         <Link href="/admin" className="flex items-center gap-2.5 overflow-hidden">
           <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl bg-velina-peach/40 dark:bg-velina-rose/10">
             <Image
-              src={BRAND_LOGO}
-              alt="Velina Elite"
+              src={logoSrc}
+              alt={brandName}
               fill
               sizes="36px"
               className="object-contain p-1 dark:invert dark:brightness-95"
@@ -55,7 +59,7 @@ export default function AdminSidebar({ collapsed, mobileOpen, onToggle, onNaviga
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate text-sm font-black text-foreground">Velina Elite</p>
+              <p className="truncate text-sm font-black text-foreground">{brandName}</p>
               <p className="truncate text-[10px] font-bold uppercase tracking-widest text-velina-rose">
                 Admin Panel
               </p>

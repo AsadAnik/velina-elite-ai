@@ -15,6 +15,7 @@ function isPublicEndpoint(url?: string, method?: string): boolean {
   if (m !== 'get') return false;
 
   if (url.startsWith('/home-sections/public')) return true;
+  if (url.startsWith('/site-settings')) return true;
   if (url.startsWith('/shipping-costs')) return true;
   if (url.startsWith('/categories')) return true;
   if (url.startsWith('/sub-categories')) return true;
@@ -30,7 +31,7 @@ function isAdminEndpoint(url?: string, method?: string): boolean {
 
   const m = (method || 'get').toLowerCase();
 
-  if (url.startsWith('/shipping-costs')) {
+  if (url.startsWith('/site-settings') || url.startsWith('/shipping-costs')) {
     return m !== 'get';
   }
 

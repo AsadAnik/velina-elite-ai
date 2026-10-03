@@ -44,6 +44,28 @@ export class SubCategoriesService {
   }
 
   /**
+   * Find One Sub Category Service
+   * @param id sub_category_id
+   * @returns Object
+   */
+  // region Find One Sub Category
+  async findOneSubCategory(id: number) {
+    const subCategory = await this.prisma.subCategory.findUnique({
+      where: { id: Number(id) },
+      include: {
+        category: true,
+        products: true,
+      },
+    });
+
+    if (!subCategory) {
+      throw new BadRequestException('Sub Category not found');
+    }
+
+    return subCategory;
+  }
+
+  /**
    * Find All Sub Category Service
    * @param dto
    * @returns
