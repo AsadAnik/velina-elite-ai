@@ -26,14 +26,6 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
-  const promotionalBadges = [
-    { name: "UNDERGARMENTS", href: "#", bg: "bg-blue-600 hover:bg-blue-700 text-white" },
-    { name: "COMBO", href: "#", bg: "bg-pink-600 hover:bg-pink-700 text-white" },
-    { name: "JEWELLERY", href: "#", bg: "bg-purple-600 hover:bg-purple-700 text-white" },
-    { name: "CLEARANCE SALE", href: "#", bg: "bg-cyan-500 hover:bg-cyan-600 text-white" },
-    { name: "MEN", href: "#", bg: "bg-emerald-800 hover:bg-emerald-900 text-white" },
-  ];
-
   const handleMouseEnter = (slug: string) => {
     if (dropdownTimer.current) clearTimeout(dropdownTimer.current);
     setActiveDropdown(slug);
@@ -229,19 +221,6 @@ export default function Navbar() {
                 </div>
               ))}
             </div>
-
-            {/* Promo badges */}
-            <div className="flex items-center gap-2">
-              {promotionalBadges.map((badge, i) => (
-                <Link
-                  key={i}
-                  href={badge.href}
-                  className={`px-3 py-1.5 rounded-full text-[10px] tracking-widest font-black transition-all ${badge.bg}`}
-                >
-                  {badge.name}
-                </Link>
-              ))}
-            </div>
           </div>
         </nav>
       </header>
@@ -329,23 +308,6 @@ export default function Navbar() {
               </div>
             </div>
           ))}
-
-          <div className="px-5 pt-4 pb-6">
-            <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-3">
-              Special Sections
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {promotionalBadges.map((badge, i) => (
-                <Link
-                  key={i}
-                  href={badge.href}
-                  className={`px-3 py-1.5 rounded-full text-[10px] tracking-widest font-black ${badge.bg}`}
-                >
-                  {badge.name}
-                </Link>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Drawer footer */}
