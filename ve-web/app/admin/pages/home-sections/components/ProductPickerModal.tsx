@@ -62,7 +62,7 @@ export default function ProductPickerModal({
       // Search query
       if (search.trim()) {
         const q = search.toLowerCase();
-        const matchesTitle = p.title.toLowerCase().includes(q);
+        const matchesTitle = p.title?.toLowerCase().includes(q);
         const matchesDesc = p.description?.toLowerCase().includes(q);
         if (!matchesTitle && !matchesDesc) return false;
       }

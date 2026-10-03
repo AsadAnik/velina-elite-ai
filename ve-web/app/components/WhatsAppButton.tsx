@@ -112,6 +112,23 @@ export default function WhatsAppButton() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  const startCoord = useRef({ x: 0, y: 0 });
+  const startTime = useRef(0);
+
+  const openWhatsApp = () => {
+    const url = whatsappUrlRef.current;
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        typeof navigator !== "undefined" ? navigator.userAgent : ""
+      ) || (typeof window !== "undefined" && window.innerWidth < 768);
+
+    if (isMobile) {
+      window.location.href = url;
+    } else {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
+
   // ── Step 2: Attach pointer events (runs after first render, dragEl.current is valid)
   useEffect(() => {
     const el = dragEl.current;
@@ -119,44 +136,56 @@ export default function WhatsAppButton() {
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType === "mouse" && e.button !== 0) return;
-      e.preventDefault();
+      
       didMove.current = false;
+      startCoord.current = { x: e.clientX, y: e.clientY };
+      startTime.current = Date.now();
 
       // getBoundingClientRect gives current rendered position
       const rect = el.getBoundingClientRect();
       offset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
 
       // Pointer capture: browser routes ALL subsequent pointer events here
-      el.setPointerCapture(e.pointerId);
-      setIsDragging(true);
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {}
       setIsOverDismissZone(false);
       isOverDismissZoneRef.current = false;
     };
 
     const onPointerMove = (e: PointerEvent) => {
       if (!el.hasPointerCapture(e.pointerId)) return;
-      e.preventDefault();
-      didMove.current = true;
 
-      // Clamp so button can't be dragged off any edge
-      const elW = el.offsetWidth || 70;
-      const elH = el.offsetHeight || 70;
-      const newPos = {
-        top: Math.max(8, Math.min(e.clientY - offset.current.y, window.innerHeight - elH - 8)),
-        left: Math.max(8, Math.min(e.clientX - offset.current.x, window.innerWidth - elW - 8)),
-      };
-      setPos(newPos);
+      const dist = Math.hypot(
+        e.clientX - startCoord.current.x,
+        e.clientY - startCoord.current.y
+      );
 
-      // Messenger-style drop target check (bottom center of viewport)
-      const targetX = window.innerWidth / 2;
-      const targetY = window.innerHeight - 70;
-      const dx = e.clientX - targetX;
-      const dy = e.clientY - targetY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      const isNearDismiss = distance < 95;
+      // Only engage drag mode if user actually moved finger/mouse past a threshold (7px)
+      if (dist > 7) {
+        didMove.current = true;
+        setIsDragging(true);
 
-      isOverDismissZoneRef.current = isNearDismiss;
-      setIsOverDismissZone(isNearDismiss);
+        // Clamp so button can't be dragged off any edge
+        const elW = el.offsetWidth || 70;
+        const elH = el.offsetHeight || 70;
+        const newPos = {
+          top: Math.max(8, Math.min(e.clientY - offset.current.y, window.innerHeight - elH - 8)),
+          left: Math.max(8, Math.min(e.clientX - offset.current.x, window.innerWidth - elW - 8)),
+        };
+        setPos(newPos);
+
+        // Messenger-style drop target check (bottom center of viewport)
+        const targetX = window.innerWidth / 2;
+        const targetY = window.innerHeight - 70;
+        const dx = e.clientX - targetX;
+        const dy = e.clientY - targetY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const isNearDismiss = distance < 95;
+
+        isOverDismissZoneRef.current = isNearDismiss;
+        setIsOverDismissZone(isNearDismiss);
+      }
     };
 
     const onPointerUp = (e: PointerEvent) => {
@@ -178,11 +207,18 @@ export default function WhatsAppButton() {
 
       setIsOverDismissZone(false);
       isOverDismissZoneRef.current = false;
-      localStorage.setItem("velina_wa_pos", JSON.stringify(posRef.current));
 
-      // If it was just a tap (no movement), open WhatsApp
-      if (!didMove.current) {
-        window.open(whatsappUrlRef.current, "_blank", "noopener,noreferrer");
+      const dist = Math.hypot(
+        e.clientX - startCoord.current.x,
+        e.clientY - startCoord.current.y
+      );
+      const duration = Date.now() - startTime.current;
+
+      // If it was a tap (no drag movement or under 7px and under 600ms), trigger WhatsApp!
+      if (!didMove.current || (dist < 8 && duration < 600)) {
+        openWhatsApp();
+      } else {
+        localStorage.setItem("velina_wa_pos", JSON.stringify(posRef.current));
       }
     };
 
@@ -237,6 +273,14 @@ export default function WhatsAppButton() {
           {/* Draggable button — touch-action:none prevents scroll interference */}
           <div
             ref={dragEl}
+            role="button"
+            tabIndex={0}
+            aria-label="Contact on WhatsApp"
+            onClick={() => {
+              if (!didMove.current) {
+                openWhatsApp();
+              }
+            }}
             style={{ touchAction: "none", cursor: isDragging ? "grabbing" : "grab" }}
             className={`relative flex items-center gap-3 rounded-full bg-[#25D366] pl-4 pr-5 py-3.5 text-white select-none transition-all duration-200 ${
               isOverDismissZone

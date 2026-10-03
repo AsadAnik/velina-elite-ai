@@ -69,9 +69,33 @@ export default function HeroCarousel() {
         const sections = await fetchApi<HomeSection[]>("/home-sections/public");
         if (Array.isArray(sections)) {
           const heroSection = sections.find((s) => s.section_type === "hero_slider");
-          if (heroSection && heroSection.items && heroSection.items.length > 0) {
-            const max = heroSection.max_items > 0 ? heroSection.max_items : heroSection.items.length;
-            setDynamicSlides(heroSection.items.slice(0, max));
+          if (heroSection) {
+            if (heroSection.items && heroSection.items.length > 0) {
+              const max = heroSection.max_items > 0 ? heroSection.max_items : heroSection.items.length;
+              setDynamicSlides(heroSection.items.slice(0, max));
+            } else if (heroSection.banner_image || heroSection.title) {
+              setDynamicSlides([
+                {
+                  id: 0,
+                  section_id: heroSection.id,
+                  title: heroSection.title,
+                  subtitle: heroSection.subtitle || "",
+                  description: heroSection.description || "",
+                  tag: heroSection.badge_text || "",
+                  tag_bg: "bg-velina-rose text-white",
+                  image_url: heroSection.banner_image || "/1777982649615(1)(1).png",
+                  link_url: heroSection.button_url || "/products",
+                  button_text: heroSection.button_text || "SHOP NOW",
+                  bg_gradient: heroSection.bg_gradient || "from-purple-950 via-zinc-900 to-black",
+                  bg_color: heroSection.bg_color,
+                  product_id: null,
+                  order_index: 0,
+                  is_active: true,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                } as HomeSectionItem,
+              ]);
+            }
           }
         }
       } catch (err) {

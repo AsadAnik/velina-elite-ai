@@ -1,7 +1,6 @@
 import React from "react";
 import Navbar from "./components/Navbar";
 import HeroCarousel from "./components/HeroCarousel";
-import ConcernCategories from "./components/ConcernCategories";
 import DynamicHomeSections from "./components/DynamicHomeSections";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
@@ -16,13 +15,10 @@ export default function Home() {
 
       {/* 2. Main Page Layout */}
       <main className="flex-grow">
-        {/* Hero Slider Section */}
+        {/* Dynamic Hero Carousel Section (managed from Dashboard) */}
         <HeroCarousel />
 
-        {/* Concern Categories Grid */}
-        <ConcernCategories />
-
-        {/* Dynamic Home Sections (Deals, Offers, Promo Banners with order customization) */}
+        {/* Dynamic Home Sections (Deals, Offers, Promo Banners, Product Showcases managed from Dashboard) */}
         <DynamicHomeSections />
 
         {/* 3. Authenticity / Trust Ribbon (Dark Banner) */}
