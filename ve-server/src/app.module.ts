@@ -14,6 +14,8 @@ import { ShippingCostsModule } from './shipping-costs/shipping-costs.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { HomeSectionsModule } from './home-sections/home-sections.module';
 import { SiteSettingsModule } from './site-settings/site-settings.module';
+import { AdminUsersModule } from './admin-users/admin-users.module';
+import { CustomersModule } from './customers/customers.module';
 import { RedisModule } from './redis/redis.module';
 
 @Module({
@@ -32,6 +34,8 @@ import { RedisModule } from './redis/redis.module';
     RatingsModule,
     HomeSectionsModule,
     SiteSettingsModule,
+    AdminUsersModule,
+    CustomersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

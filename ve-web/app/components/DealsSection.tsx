@@ -54,14 +54,14 @@ export default function DealsSection() {
 
   // region MAIN UI
   return (
-    <section className="py-12 bg-zinc-50 dark:bg-zinc-900/40 w-full transition-colors duration-300">
+    <section className="py-12 bg-transparent w-full transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         {/* Section Header */}
         <div className="text-center mb-10">
-          <h2 className="text-[11px] font-black tracking-widest text-zinc-400 dark:text-zinc-500 uppercase">
+          <h2 className="text-[11px] font-black tracking-widest text-velina-rose dark:text-pink-400 uppercase">
             Special Selections
           </h2>
-          <h3 className="text-xl md:text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-1 uppercase tracking-wider">
+          <h3 className="text-xl md:text-2xl font-black text-foreground mt-1 uppercase tracking-wider">
             Deals You Cannot Miss
           </h3>
           <div className="w-16 h-1 bg-velina-gold mx-auto mt-2 rounded-full"></div>

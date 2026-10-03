@@ -32,26 +32,40 @@ export function useHomeSections() {
   const fetchDependencies = useCallback(async () => {
     try {
       const [prodData, catData, subCatData] = await Promise.allSettled([
-        fetchApi<{ products: Product[] } | Product[]>("/products?limit=100"),
-        fetchApi<Category[]>("/categories"),
-        fetchApi<SubCategory[]>("/sub-categories"),
+        fetchApi<{ data?: Product[]; products?: Product[] } | Product[]>("/products?limit=100"),
+        fetchApi<{ data?: Category[] } | Category[]>("/categories"),
+        fetchApi<{ data?: SubCategory[] } | SubCategory[]>("/sub-categories"),
       ]);
 
       if (prodData.status === "fulfilled") {
         const val = prodData.value;
         if (Array.isArray(val)) {
           setProducts(val);
-        } else if (val && Array.isArray(val.products)) {
-          setProducts(val.products);
+        } else if (val && typeof val === "object") {
+          if (Array.isArray(val.data)) {
+            setProducts(val.data);
+          } else if (Array.isArray(val.products)) {
+            setProducts(val.products);
+          }
         }
       }
 
-      if (catData.status === "fulfilled" && Array.isArray(catData.value)) {
-        setCategories(catData.value);
+      if (catData.status === "fulfilled") {
+        const catVal = catData.value;
+        if (Array.isArray(catVal)) {
+          setCategories(catVal);
+        } else if (catVal && typeof catVal === "object" && Array.isArray(catVal.data)) {
+          setCategories(catVal.data);
+        }
       }
 
-      if (subCatData.status === "fulfilled" && Array.isArray(subCatData.value)) {
-        setSubCategories(subCatData.value);
+      if (subCatData.status === "fulfilled") {
+        const subCatVal = subCatData.value;
+        if (Array.isArray(subCatVal)) {
+          setSubCategories(subCatVal);
+        } else if (subCatVal && typeof subCatVal === "object" && Array.isArray(subCatVal.data)) {
+          setSubCategories(subCatVal.data);
+        }
       }
     } catch (err) {
       console.error("Failed to load dependency data for builder", err);

@@ -69,7 +69,7 @@ export default function SectionModal({
   const [badgeText, setBadgeText] = useState("");
   const [description, setDescription] = useState("");
   const [sectionType, setSectionType] = useState("hero_slider");
-  const [bgType, setBgType] = useState<"gradient" | "color" | "image">("gradient");
+  const [bgType, setBgType] = useState<"transparent" | "gradient" | "color" | "image">("transparent");
   const [bgGradient, setBgGradient] = useState("from-pink-600 to-rose-800");
   const [bgColor, setBgColor] = useState("#18181b");
   const [bannerUrl, setBannerUrl] = useState("");
@@ -96,7 +96,11 @@ export default function SectionModal({
       setBadgeText(section.badge_text || "");
       setDescription(section.description || "");
       setSectionType(section.section_type || "hero_slider");
-      setBgType((section.bg_type as "gradient" | "color" | "image") || "gradient");
+      const resolvedBgType =
+        section.bg_type === "transparent" || (!section.bg_gradient && !section.bg_color && !section.bg_image)
+          ? "transparent"
+          : (section.bg_type as "gradient" | "color" | "image") || "transparent";
+      setBgType(resolvedBgType);
       setBgGradient(section.bg_gradient || "from-pink-600 to-rose-800");
       setBgColor(section.bg_color || "#18181b");
       setBannerUrl(section.banner_url || "");
@@ -161,8 +165,14 @@ export default function SectionModal({
     if (description) formData.append("description", description);
     formData.append("section_type", sectionType);
     formData.append("bg_type", bgType);
-    if (bgGradient) formData.append("bg_gradient", bgGradient);
-    if (bgColor) formData.append("bg_color", bgColor);
+    if (bgType === "gradient" && bgGradient) {
+      formData.append("bg_gradient", bgGradient);
+    } else if (bgType === "color" && bgColor) {
+      formData.append("bg_color", bgColor);
+    } else if (bgType === "transparent") {
+      formData.append("bg_gradient", "");
+      formData.append("bg_color", "");
+    }
     if (bannerUrl) formData.append("banner_url", bannerUrl);
     if (buttonText) formData.append("button_text", buttonText);
     if (buttonUrl) formData.append("button_url", buttonUrl);
@@ -560,7 +570,7 @@ export default function SectionModal({
                   Background Styling
                 </label>
                 <div className="flex gap-1 bg-zinc-200 dark:bg-zinc-700 p-0.5 rounded-lg text-xs font-bold">
-                  {(["gradient", "color", "image"] as const).map((t) => (
+                  {(["transparent", "gradient", "color", "image"] as const).map((t) => (
                     <button
                       key={t}
                       type="button"
@@ -571,11 +581,19 @@ export default function SectionModal({
                           : "text-muted hover:text-foreground"
                       }`}
                     >
-                      {t}
+                      {t === "transparent" ? "Theme Default" : t}
                     </button>
                   ))}
                 </div>
               </div>
+
+              {bgType === "transparent" && (
+                <div className="p-3 rounded-xl bg-surface border border-zinc-200 dark:border-zinc-700/60 text-xs text-muted">
+                  <p>
+                    <strong className="text-foreground">Theme Adaptive Background:</strong> No custom overlay. Automatically uses the store&apos;s native dark or light theme background (matching the navbar and &quot;Shop by Concern&quot;).
+                  </p>
+                </div>
+              )}
 
               {bgType === "gradient" && (
                 <div className="space-y-2">
