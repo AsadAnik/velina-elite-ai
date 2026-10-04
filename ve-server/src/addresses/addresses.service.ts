@@ -8,6 +8,7 @@ export class AddressesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getUserAddresses(customerId: number) {
+    if (!customerId) return [];
     const addresses = await this.prisma.address.findMany({
       where: { customer_id: customerId },
       orderBy: [{ is_default: 'desc' }, { created_at: 'desc' }],

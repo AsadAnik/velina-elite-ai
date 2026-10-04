@@ -17,6 +17,7 @@ import { SiteSettingsModule } from './site-settings/site-settings.module';
 import { AdminUsersModule } from './admin-users/admin-users.module';
 import { CustomersModule } from './customers/customers.module';
 import { RedisModule } from './redis/redis.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { RedisModule } from './redis/redis.module';
     SiteSettingsModule,
     AdminUsersModule,
     CustomersModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

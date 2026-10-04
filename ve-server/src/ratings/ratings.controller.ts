@@ -54,4 +54,13 @@ export class RatingsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.ratingsService.remove(id);
   }
+
+  @Post('admin/ratings/seed')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.admin, Role.owner)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Seed realistic ratings (8-10 ratings per product, 4.5 - 5 stars) (Admin only)' })
+  seedRatings() {
+    return this.ratingsService.seedRatings();
+  }
 }

@@ -32,7 +32,7 @@ export class CustomersController {
 
   @Get()
   @ApiOperation({ summary: 'Get paginated customers list with search' })
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(new ValidationPipe({ transform: true, forbidNonWhitelisted: false }))
   getCustomers(@Query() query: QueryCustomersDto) {
     return this.customersService.getCustomers(query);
   }

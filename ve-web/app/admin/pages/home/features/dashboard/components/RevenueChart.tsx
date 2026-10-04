@@ -1,14 +1,17 @@
 type ChartPoint = {
   day: string;
   value: number;
+  amount?: string;
 };
 
 type RevenueChartProps = {
   data: ChartPoint[];
+  totalWeeklyRevenue?: string;
+  weeklyGrowth?: string;
 };
 
-export default function RevenueChart({ data }: RevenueChartProps) {
-  const max = Math.max(...data.map((d) => d.value));
+export default function RevenueChart({ data, totalWeeklyRevenue, weeklyGrowth }: RevenueChartProps) {
+  const max = Math.max(...data.map((d) => d.value), 1);
 
   return (
     <div className="rounded-2xl border border-border bg-white dark:bg-zinc-900/50 p-5 shadow-sm">
@@ -20,9 +23,9 @@ export default function RevenueChart({ data }: RevenueChartProps) {
           <h3 className="text-sm font-black text-foreground mt-0.5">Weekly performance</h3>
         </div>
         <div className="text-right">
-          <p className="text-lg font-black text-foreground">৳8,42,000</p>
+          <p className="text-lg font-black text-foreground">{totalWeeklyRevenue ?? "৳0"}</p>
           <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-            +14.3% this week
+            {weeklyGrowth ?? "0% this week"}
           </p>
         </div>
       </div>

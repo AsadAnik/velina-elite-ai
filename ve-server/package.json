@@ -16,6 +16,7 @@
     "start:neon": "dotenv -e .env.production -- prisma generate && dotenv -e .env.production -- nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "pnpm prisma migrate deploy; node dist/src/main",
+    "seed:ratings": "tsx prisma/seed-ratings.ts",
     "lint": "echo \"ESLint disabled for this project\"",
     "test": "jest",
     "test:watch": "jest --watch",
