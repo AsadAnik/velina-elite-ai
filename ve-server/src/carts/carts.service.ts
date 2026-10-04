@@ -6,6 +6,7 @@ export class CartsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getUserCart(customerId: number) {
+    if (!customerId) return [];
     const cartItems = await this.prisma.cart.findMany({
       where: { customer_id: customerId },
       include: {

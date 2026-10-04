@@ -162,6 +162,7 @@ export class OrdersService {
    * @returns Orders for the specified customer
    */
   async getCustomerOrders(customerId: number) {
+    if (!customerId) return [];
     const orders = await this.prisma.order.findMany({
       where: { customer_id: customerId },
       include: {

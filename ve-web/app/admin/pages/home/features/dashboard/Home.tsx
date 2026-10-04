@@ -7,9 +7,20 @@ import TopProducts from "./components/TopProducts";
 import ActivityFeed from "./components/ActivityFeed";
 import RevenueChart from "./components/RevenueChart";
 import { useDashboardStats } from "./hooks";
+import { RefreshCw } from "lucide-react";
 
 export default function Home() {
-  const { stats, orders, topProducts, activity, chartData } = useDashboardStats();
+  const {
+    loading,
+    banner,
+    stats,
+    orders,
+    topProducts,
+    activity,
+    chartData,
+    chartSummary,
+    refetch,
+  } = useDashboardStats();
 
   return (
     <div className="space-y-6">
@@ -19,9 +30,16 @@ export default function Home() {
         <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-velina-gold/15 blur-3xl" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-pink-200/80">
-              Velina Elite BD
-            </p>
+            <div className="flex items-center gap-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-pink-200/80">
+                Velina Elite BD
+              </p>
+              {loading && (
+                <span className="flex items-center gap-1 text-[10px] text-pink-300 animate-pulse">
+                  <RefreshCw size={10} className="animate-spin" /> Live syncing...
+                </span>
+              )}
+            </div>
             <h2 className="mt-1 text-2xl md:text-3xl font-black leading-tight">
               Welcome back,{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-velina-gold to-velina-rose">
@@ -32,10 +50,10 @@ export default function Home() {
               Your beauty empire at a glance — track sales, orders, and top products in real time.
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
             {[
-              { label: "Today's Sales", value: "৳84,200" },
-              { label: "Pending Orders", value: "42" },
+              { label: "Today's Sales", value: banner.todaySales },
+              { label: "Pending Orders", value: banner.pendingOrders.toString() },
             ].map((item) => (
               <div
                 key={item.label}
@@ -47,6 +65,13 @@ export default function Home() {
                 <p className="mt-1 text-lg font-black text-velina-gold">{item.value}</p>
               </div>
             ))}
+            <button
+              onClick={refetch}
+              title="Refresh Dashboard Data"
+              className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 transition-colors text-zinc-300 hover:text-white"
+            >
+              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            </button>
           </div>
         </div>
       </section>
@@ -61,7 +86,11 @@ export default function Home() {
       {/* Charts + sidebar widgets */}
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2">
-          <RevenueChart data={chartData} />
+          <RevenueChart
+            data={chartData}
+            totalWeeklyRevenue={chartSummary.totalWeeklyRevenue}
+            weeklyGrowth={chartSummary.weeklyGrowth}
+          />
         </div>
         <QuickActions />
       </section>

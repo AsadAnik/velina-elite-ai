@@ -31,6 +31,12 @@ export type ActivityItem = {
   type: "order" | "product" | "customer" | "promo";
 };
 
+export type ChartPoint = {
+  day: string;
+  value: number;
+  amount?: string;
+};
+
 export const dashboardStats: DashboardStat[] = [
   {
     id: "revenue",

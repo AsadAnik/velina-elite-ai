@@ -21,11 +21,13 @@ export class CustomersService {
     const where: Prisma.UserWhereInput = {};
 
     if (query.role) {
-      if (Object.values(Role).includes(query.role as Role)) {
-        where.role = query.role as Role;
+      const roleStr = Array.isArray(query.role) ? query.role[0] : String(query.role).trim();
+      if (roleStr && roleStr.toLowerCase() !== 'all') {
+        if (Object.values(Role).includes(roleStr as Role)) {
+          where.role = roleStr as Role;
+        }
       }
     } else {
-      // Default: show customer role, or all non-owners if desirable. Let's include customers by default
       where.role = Role.customer;
     }
 
@@ -80,11 +82,11 @@ export class CustomersService {
     const items = users.map((user) => {
       const orders = user.customer?.orders || [];
       const totalSpent = orders.reduce((sum, order) => {
-        return sum + Number(order.total_amount || 0);
+        return sum + Number(order?.total_amount ?? 0);
       }, 0);
 
       const fullName = user.customer
-        ? `${user.customer.fname} ${user.customer.lname}`.trim()
+        ? `${user.customer.fname || ''} ${user.customer.lname || ''}`.trim() || user.username
         : user.username;
 
       return {
@@ -98,14 +100,14 @@ export class CustomersService {
         customer: user.customer
           ? {
               id: user.customer.id,
-              fname: user.customer.fname,
-              lname: user.customer.lname,
-              phone: user.customer.phone,
-              gender: user.customer.gender,
-              addresses: user.customer.addresses,
-              ordersCount: user.customer._count.orders,
-              ratingsCount: user.customer._count.ratings,
-              wishlistsCount: user.customer._count.wishlists,
+              fname: user.customer.fname || '',
+              lname: user.customer.lname || '',
+              phone: user.customer.phone || null,
+              gender: user.customer.gender || 'other',
+              addresses: user.customer.addresses || [],
+              ordersCount: user.customer._count?.orders ?? 0,
+              ratingsCount: user.customer._count?.ratings ?? 0,
+              wishlistsCount: user.customer._count?.wishlists ?? 0,
               totalSpent,
             }
           : null,
