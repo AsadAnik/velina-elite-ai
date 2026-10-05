@@ -14,6 +14,7 @@ import { Product as UiProduct } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import ProductRatings from "./components/ProductRatings";
 import RelatedProducts from "./components/RelatedProducts";
+import ProductDetailsSkeleton from "./components/ProductDetailsSkeleton";
 import { ProductRatingsSummary } from "@/types/rating";
 
 export default function ProductDetails({ params }: { params: Promise<{ id: string }> }) {
@@ -32,13 +33,9 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
     });
   }, [params]);
 
-  if (!product)
-    return (
-      <>
-        <Navbar />
-        <main className="p-8">Loading product…</main>
-      </>
-    );
+  if (!product) {
+    return <ProductDetailsSkeleton />;
+  }
 
   const price = Number(product.regular_price ?? product.price);
   const mrp = Number(product.mrp_price ?? price);

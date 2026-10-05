@@ -18,6 +18,7 @@ import { AdminUsersModule } from './admin-users/admin-users.module';
 import { CustomersModule } from './customers/customers.module';
 import { RedisModule } from './redis/redis.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     AdminUsersModule,
     CustomersModule,
     DashboardModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
