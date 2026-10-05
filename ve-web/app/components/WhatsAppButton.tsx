@@ -4,7 +4,8 @@ import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useStore } from "@/lib/store";
 import { fetchApi } from "@/lib/api";
-import { X } from "lucide-react";
+import { X, Sparkles, MessageCircle } from "lucide-react";
+import VelinaAssistantModal from "./VelinaAssistantModal";
 
 function buildWhatsAppUrl(numberStr?: string, messageStr?: string) {
   const digits = (numberStr || "8801347375533").replace(/[^\d]/g, "");
@@ -23,7 +24,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
-export default function WhatsAppButton() {
+export default function FloatingChatWidget() {
   const pathname = usePathname();
   const { isWhatsAppHidden, setWhatsAppHidden } = useStore();
 
@@ -36,9 +37,14 @@ export default function WhatsAppButton() {
     whatsapp_message: "Hello! I have a question about Velina Elite.",
     is_whatsapp_active: true,
   });
+
   const whatsappUrlRef = useRef(buildWhatsAppUrl("8801347375533", "Hello! I have a question about Velina Elite."));
 
-  // Fetch dynamic settings from API
+  // Floating speed-dial open/closed state & AI Modal state
+  const [isOpen, setIsOpen] = useState(false);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+
+  // Fetch site settings
   useEffect(() => {
     fetchApi<{
       whatsapp_number?: string;
@@ -52,11 +58,10 @@ export default function WhatsAppButton() {
         }
       })
       .catch((err) => {
-        console.error("Failed to load site settings for WhatsApp button:", err);
+        console.error("Failed to load site settings for Chat Head:", err);
       });
   }, []);
 
-  // Start off-screen so element mounts immediately (ref available), then snap to real position
   const posRef = useRef({ top: -500, left: -500 });
   const [pos, _setPos] = useState({ top: -500, left: -500 });
   const setPos = (p: { top: number; left: number }) => {
@@ -74,13 +79,11 @@ export default function WhatsAppButton() {
   const dragEl = useRef<HTMLDivElement>(null);
   const offset = useRef({ x: 0, y: 0 });
 
-  // ── Clamp position so button stays within viewport
   const clamp = (p: { top: number; left: number }, elW = 70, elH = 70) => ({
     top: Math.max(8, Math.min(p.top, window.innerHeight - elH - 8)),
     left: Math.max(8, Math.min(p.left, window.innerWidth - elW - 8)),
   });
 
-  // ── Step 1: Load position (runs after first render, ref is already available)
   useEffect(() => {
     try {
       const saved = localStorage.getItem("velina_wa_pos");
@@ -94,16 +97,14 @@ export default function WhatsAppButton() {
       }
     } catch { /* ignore */ }
 
-    // Mobile-safe default: bottom-right with enough room for the button
     const isMobile = window.innerWidth < 640;
     setPos({
-      top: window.innerHeight - (isMobile ? 90 : 100),
-      left: window.innerWidth - (isMobile ? 86 : 260),
+      top: window.innerHeight - (isMobile ? 90 : 110),
+      left: window.innerWidth - (isMobile ? 86 : 280),
     });
     setReady(true);
   }, []);
 
-  // ── Re-clamp on window resize (e.g. device rotation)
   useEffect(() => {
     const onResize = () => {
       setPos(clamp(posRef.current));
@@ -115,7 +116,11 @@ export default function WhatsAppButton() {
   const startCoord = useRef({ x: 0, y: 0 });
   const startTime = useRef(0);
 
-  const openWhatsApp = () => {
+  const openWhatsApp = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     const url = whatsappUrlRef.current;
     const isMobile =
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -127,25 +132,32 @@ export default function WhatsAppButton() {
     } else {
       window.open(url, "_blank", "noopener,noreferrer");
     }
+    setIsOpen(false);
   };
 
-  // ── Step 2: Attach pointer events (runs after first render, dragEl.current is valid)
+  const openVelinaAssistant = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    setIsAssistantOpen(true);
+    setIsOpen(false);
+  };
+
   useEffect(() => {
     const el = dragEl.current;
     if (!el) return;
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType === "mouse" && e.button !== 0) return;
-      
+
       didMove.current = false;
       startCoord.current = { x: e.clientX, y: e.clientY };
       startTime.current = Date.now();
 
-      // getBoundingClientRect gives current rendered position
       const rect = el.getBoundingClientRect();
       offset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
 
-      // Pointer capture: browser routes ALL subsequent pointer events here
       try {
         el.setPointerCapture(e.pointerId);
       } catch {}
@@ -161,12 +173,10 @@ export default function WhatsAppButton() {
         e.clientY - startCoord.current.y
       );
 
-      // Only engage drag mode if user actually moved finger/mouse past a threshold (7px)
       if (dist > 7) {
         didMove.current = true;
         setIsDragging(true);
 
-        // Clamp so button can't be dragged off any edge
         const elW = el.offsetWidth || 70;
         const elH = el.offsetHeight || 70;
         const newPos = {
@@ -175,7 +185,6 @@ export default function WhatsAppButton() {
         };
         setPos(newPos);
 
-        // Messenger-style drop target check (bottom center of viewport)
         const targetX = window.innerWidth / 2;
         const targetY = window.innerHeight - 70;
         const dx = e.clientX - targetX;
@@ -197,7 +206,6 @@ export default function WhatsAppButton() {
 
       setIsDragging(false);
 
-      // Check if dropped into Messenger dismiss zone
       if (isOverDismissZoneRef.current) {
         setWhatsAppHidden(true);
         setIsOverDismissZone(false);
@@ -208,16 +216,8 @@ export default function WhatsAppButton() {
       setIsOverDismissZone(false);
       isOverDismissZoneRef.current = false;
 
-      const dist = Math.hypot(
-        e.clientX - startCoord.current.x,
-        e.clientY - startCoord.current.y
-      );
-      const duration = Date.now() - startTime.current;
-
-      // If it was a tap (no drag movement or under 7px and under 600ms), trigger WhatsApp!
-      if (!didMove.current || (dist < 8 && duration < 600)) {
-        openWhatsApp();
-      } else {
+      // Only save position if dragged
+      if (didMove.current) {
         localStorage.setItem("velina_wa_pos", JSON.stringify(posRef.current));
       }
     };
@@ -250,9 +250,13 @@ export default function WhatsAppButton() {
 
   if (pathname.startsWith("/admin")) return null;
 
-  // Always render the div (never unmount it) so the dragEl ref stays valid
-  // and pointer listeners don't need re-attaching after hide/unhide.
   const hidden = isWhatsAppHidden || settings.is_whatsapp_active === false;
+
+  const handleChatHeadClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (didMove.current) return;
+    setIsOpen((prev) => !prev);
+  };
 
   return (
     <>
@@ -268,44 +272,106 @@ export default function WhatsAppButton() {
           WebkitUserSelect: "none",
         }}
       >
-        <div className="relative group">
+        <div className="relative flex flex-col items-end">
 
-          {/* Draggable button — touch-action:none prevents scroll interference */}
+          {/* ── EXPANDED SPEED DIAL OPTIONS (SHOWN WHEN CHAT HEAD IS CLICKED) ── */}
+          {isOpen && !isDragging && (
+            <div className="absolute bottom-full mb-3 flex flex-col gap-3 items-end animate-in fade-in slide-in-from-bottom-4 duration-200 z-[10001]">
+              
+              {/* Option 1: Velina AI Assistant */}
+              <div
+                onClick={openVelinaAssistant}
+                className="flex items-center gap-2.5 cursor-pointer group pointer-events-auto"
+              >
+                <div className="hidden sm:flex flex-col items-end px-3 py-1.5 rounded-2xl bg-zinc-900/90 dark:bg-zinc-800/90 text-white backdrop-blur-md shadow-xl border border-white/10 transition-transform group-hover:scale-105">
+                  <span className="text-[11px] font-bold text-rose-300 flex items-center gap-1">
+                    <Sparkles size={11} /> Velina AI Assistant
+                  </span>
+                  <span className="text-[9px] text-zinc-300">24/7 Smart Beauty Guide</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={openVelinaAssistant}
+                  aria-label="Open Velina AI Assistant"
+                  className="relative flex h-13 w-13 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#e25c80] via-[#c44062] to-[#b38e5d] text-white shadow-[0_8px_25px_rgba(226,92,128,0.5)] ring-2 ring-white/30 hover:scale-110 active:scale-95 transition-all duration-200"
+                >
+                  <Sparkles className="h-6 w-6 animate-pulse" />
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white ring-2 ring-white">
+                    AI
+                  </span>
+                </button>
+              </div>
+
+              {/* Option 2: WhatsApp Support */}
+              <div
+                onClick={openWhatsApp}
+                className="flex items-center gap-2.5 cursor-pointer group pointer-events-auto"
+              >
+                <div className="hidden sm:flex flex-col items-end px-3 py-1.5 rounded-2xl bg-zinc-900/90 dark:bg-zinc-800/90 text-white backdrop-blur-md shadow-xl border border-white/10 transition-transform group-hover:scale-105">
+                  <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                    <MessageCircle size={11} /> WhatsApp Support
+                  </span>
+                  <span className="text-[9px] text-zinc-300">Human Agent & Orders</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={openWhatsApp}
+                  aria-label="Chat on WhatsApp"
+                  className="relative flex h-13 w-13 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_8px_25px_rgba(37,211,102,0.5)] ring-2 ring-white/30 hover:scale-110 active:scale-95 transition-all duration-200"
+                >
+                  <WhatsAppIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+            </div>
+          )}
+
+          {/* ── MASKED CHAT HEAD LAUNCHER BUTTON ── */}
           <div
             ref={dragEl}
             role="button"
             tabIndex={0}
-            aria-label="Contact on WhatsApp"
-            onClick={() => {
-              if (!didMove.current) {
-                openWhatsApp();
-              }
-            }}
+            aria-label="Open Chat Options"
+            onClick={handleChatHeadClick}
             style={{ touchAction: "none", cursor: isDragging ? "grabbing" : "grab" }}
-            className={`relative flex items-center gap-3 rounded-full bg-[#25D366] pl-4 pr-5 py-3.5 text-white select-none transition-all duration-200 ${
+            className={`relative flex items-center justify-center h-14 w-14 rounded-full select-none transition-all duration-200 ${
               isOverDismissZone
                 ? "bg-rose-500 scale-90 opacity-70 shadow-none"
+                : isOpen
+                ? "bg-zinc-900 dark:bg-zinc-800 shadow-2xl ring-2 ring-white/30 scale-105"
                 : isDragging
-                ? "shadow-[0_20px_60px_rgba(37,211,102,0.8)] scale-[1.06]"
-                : "shadow-[0_8px_30px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_40px_rgba(37,211,102,0.6)]"
+                ? "bg-gradient-to-tr from-[#111111] via-[#1c1622] to-[#c44062] shadow-[0_20px_50px_rgba(196,64,98,0.8)] scale-110"
+                : "bg-gradient-to-tr from-[#111111] via-[#1a1721] to-[#c44062] shadow-[0_10px_35px_rgba(226,92,128,0.5)] hover:scale-110 ring-2 ring-white/20"
             }`}
           >
-            <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20 pointer-events-none" />
-            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 ring-2 ring-white/25 pointer-events-none">
-              <WhatsAppIcon className="h-5 w-5" />
-            </span>
-            <span className="relative hidden sm:flex flex-col items-start leading-none pointer-events-none">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">
-                Need help?
-              </span>
-              <span className="mt-1 text-sm font-black tracking-wide">Chat on WhatsApp</span>
-            </span>
+            {/* Ambient shimmer ring */}
+            {!isOpen && (
+              <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#e25c80] to-[#25D366] animate-ping opacity-25 pointer-events-none" />
+            )}
+
+            {/* Toggle Icon or Masked Chat Head Icons */}
+            {isOpen ? (
+              <X className="h-6 w-6 text-white" />
+            ) : (
+              <div className="relative flex items-center justify-center pointer-events-none">
+                {/* Masked dual-avatar head */}
+                <div className="relative flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-tr from-[#e25c80] via-[#c44062] to-[#b38e5d] text-white ring-1 ring-white/40 shadow-inner overflow-hidden">
+                  <Sparkles className="h-5 w-5 animate-pulse" />
+                  {/* Overlapping WhatsApp mini badge */}
+                  <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#25D366] ring-2 ring-[#111111] text-white">
+                    <WhatsAppIcon className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+                {/* Active status pulse dot */}
+                <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 ring-2 ring-[#111111]" />
+              </div>
+            )}
           </div>
 
         </div>
       </div>
 
-      {/* Messenger-style Drag-to-Dismiss Drop Zone (Appears when dragging on touch/desktop) */}
+      {/* Messenger-style Drag-to-Dismiss Drop Zone */}
       {isDragging && ready && !hidden && (
         <div
           style={{
@@ -337,6 +403,13 @@ export default function WhatsAppButton() {
           </span>
         </div>
       )}
+
+      {/* Interactive Velina AI Assistant Floating Chat Window */}
+      <VelinaAssistantModal
+        isOpen={isAssistantOpen}
+        onClose={() => setIsAssistantOpen(false)}
+        onOpenWhatsApp={openWhatsApp}
+      />
     </>
   );
 }
