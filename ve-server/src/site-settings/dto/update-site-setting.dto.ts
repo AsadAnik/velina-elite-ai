@@ -32,4 +32,14 @@ export class UpdateSiteSettingDto {
   })
   @IsBoolean()
   is_whatsapp_active?: boolean;
+
+  @ApiPropertyOptional({ example: true, description: 'Whether AI Assistant chat is active' })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true' || value === true || value === 1 || value === '1') return true;
+    if (value === 'false' || value === false || value === 0 || value === '0') return false;
+    return value;
+  })
+  @IsBoolean()
+  is_ai_active?: boolean;
 }

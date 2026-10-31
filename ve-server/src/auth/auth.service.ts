@@ -15,6 +15,12 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 export class AuthService {
   constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService) { }
 
+  /**
+   * LOGIN AS USER
+   * @param dto 
+   * @returns 
+   */
+  // region USER LOGIN
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
@@ -37,6 +43,12 @@ export class AuthService {
     return this.buildAuthResponse(user);
   }
 
+  /**
+   * ADMIN LOGIN FOR DASHBOARD
+   * @param dto 
+   * @returns 
+   */
+  // region ADMIN LOGIN
   async adminLogin(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
@@ -62,6 +74,12 @@ export class AuthService {
     return this.buildAuthResponse(user);
   }
 
+  /**
+   * REGISTER AS USER
+   * @param dto 
+   * @returns 
+   */
+  // region USER REGISTER
   async register(dto: RegisterDto) {
     if (dto.password !== dto.confirmPassword) {
       throw new BadRequestException('Password and confirm password must match');
@@ -100,6 +118,12 @@ export class AuthService {
     return this.buildAuthResponse(user);
   }
 
+  /**
+   * ADMIN USER
+   * private internal function
+   * @param dto 
+   * @returns 
+   */
   private async ensureDefaultAdminUser(dto: LoginDto) {
     const defaultAdminEmail = 'velinaelitebd01@gmail.com';
     const defaultPassword = 'Velina.Admin1234';
@@ -130,6 +154,12 @@ export class AuthService {
     });
   }
 
+  /**
+   * BUILD AUTH RESPONSE
+   * private internal function
+   * @param user 
+   * @returns 
+   */
   private buildAuthResponse(user: { id: number; email: string; role: Role; customer?: { id: number } | null }) {
     const accessToken = this.jwtService.sign({
       sub: user.id,
@@ -149,6 +179,13 @@ export class AuthService {
     };
   }
 
+  /**
+   * CHANGE USER'S PASSWORD
+   * @param userId 
+   * @param dto 
+   * @returns 
+   */
+  // region CHANGE PASSWORD
   async changePassword(userId: number, dto: ChangePasswordDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

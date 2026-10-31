@@ -31,6 +31,7 @@ type SiteSettingsState = {
   whatsapp_number?: string;
   whatsapp_message?: string;
   is_whatsapp_active?: boolean;
+  is_ai_active?: boolean;
 };
 
 type State = {
@@ -178,6 +179,7 @@ const DEFAULT_SITE_SETTINGS: SiteSettingsState = {
   whatsapp_number: "8801347375533",
   whatsapp_message: "Hello! I have a question about Velina Elite.",
   is_whatsapp_active: true,
+  is_ai_active: true,
 };
 
 const initialState: State = {

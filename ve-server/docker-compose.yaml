@@ -12,6 +12,7 @@ services:
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/velina_elite_db?schema=public
+      - AI_VECTOR_DATABASE_URL=postgresql://ai_vector_user:ai_vector_password@ai_vector_db:5432/velina_ai_vectors
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     volumes:
@@ -20,6 +21,8 @@ services:
     restart: always
     depends_on:
       db:
+        condition: service_healthy
+      ai_vector_db:
         condition: service_healthy
       redis:
         condition: service_started
@@ -42,6 +45,25 @@ services:
       timeout: 5s
       retries: 5
 
+  # region DEDICATED AI VECTOR DB (pgvector)
+  ai_vector_db:
+    image: pgvector/pgvector:pg16
+    container_name: velina-ai-vector-db
+    restart: always
+    environment:
+      POSTGRES_USER: ai_vector_user
+      POSTGRES_PASSWORD: ai_vector_password
+      POSTGRES_DB: velina_ai_vectors
+    ports:
+      - '5433:5432'
+    volumes:
+      - ai_vector_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ai_vector_user -d velina_ai_vectors']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   # region REDIS & REDIS/STACK
   redis:
     image: redis/redis-stack:latest
@@ -60,4 +82,5 @@ services:
 
 volumes:
   postgres_data:
+  ai_vector_data:
   redis_data:
