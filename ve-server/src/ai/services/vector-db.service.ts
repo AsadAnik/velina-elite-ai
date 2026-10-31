@@ -33,11 +33,17 @@ export class VectorDbService implements OnModuleInit, OnModuleDestroy {
       'postgresql://ai_vector_user:ai_vector_password@localhost:5433/velina_ai_vectors';
 
     try {
+      const isSsl =
+        connectionString.includes('sslmode=require') ||
+        connectionString.includes('neon.tech') ||
+        process.env.NODE_ENV === 'production';
+
       this.pool = new Pool({
         connectionString,
         max: 10,
         idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 5000,
+        connectionTimeoutMillis: 10000,
+        ssl: isSsl ? { rejectUnauthorized: false } : undefined,
       });
 
       // Verify connection
