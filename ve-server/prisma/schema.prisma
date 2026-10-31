@@ -265,6 +265,7 @@ model SiteSetting {
   whatsapp_number    String   @default("8801347375533")
   whatsapp_message   String?  @default("Hello! I have a question about Velina Elite.")
   is_whatsapp_active Boolean  @default(true)
+  is_ai_active       Boolean  @default(true)
   created_at         DateTime @default(now())
   updated_at         DateTime @updatedAt
 }

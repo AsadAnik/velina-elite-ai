@@ -1,8 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, MessageEvent } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { Observable } from 'rxjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { PollinationsProvider } from './providers/pollinations.provider';
 import { ChatRequestDto } from './dto/chat-request.dto';
-import { ChatMessage } from './interfaces/llm-provider.interface';
+import { ChatMessage, SseAiEvent } from './interfaces/llm-provider.interface';
+import { VectorDbService } from './services/vector-db.service';
+import { EmbeddingService } from './services/embedding.service';
+
+export type MatchedProduct = Prisma.ProductGetPayload<{
+  include: {
+    category: true;
+    sub_category: true;
+  };
+}>;
 
 export interface ChatResponse {
   reply: string;
@@ -17,10 +28,19 @@ export class AiService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly llmProvider: PollinationsProvider,
-  ) {}
+    private readonly vectorDb: VectorDbService,
+    private readonly embeddingService: EmbeddingService,
+  ) { }
 
+  /**
+   * PROCESS CHAT
+   * @param dto 
+   * @returns 
+   */
+  // region Process Chat
   async processChat(dto: ChatRequestDto): Promise<ChatResponse> {
     const userQuery = dto.message.trim();
+    const wantsProducts = this.isUserAskingForProducts(userQuery, dto.history);
 
     // Step 1: Database Grounding - Retrieve Store Policies & Catalog
     const [shipping, settings, matchedProducts] = await Promise.all([
@@ -29,8 +49,8 @@ export class AiService {
       this.searchProducts(userQuery),
     ]);
 
-    // Step 2: Assemble System Prompt with Injected Store Knowledge
-    const systemPrompt = this.buildSystemPrompt(shipping, settings, matchedProducts);
+    // Step 2: Assemble System Prompt with Injected Store Knowledge & Permission Rules
+    const systemPrompt = this.buildSystemPrompt(shipping, settings, matchedProducts, wantsProducts);
 
     // Step 3: Format Multi-turn Chat History
     const messages: ChatMessage[] = [
@@ -59,24 +79,37 @@ export class AiService {
       });
     } catch (error) {
       this.logger.warn(`AI Provider failed, generating local fallback response: ${error}`);
-      rawReply = this.generateLocalFallback(userQuery, matchedProducts, shipping);
+      rawReply = this.generateLocalFallback(userQuery, matchedProducts, shipping, dto.history);
     }
 
     // Step 5: Parse Structured Product Recommendations
-    const { cleanReply, productIds } = this.extractProductRecommendations(rawReply, matchedProducts);
+    let { cleanReply, productIds } = this.extractProductRecommendations(
+      rawReply,
+      matchedProducts,
+      wantsProducts,
+      userQuery,
+    );
 
-    // Step 6: Map to Full Product Entities for UI Cards
-    const recommendedProductCards = await this.prisma.product.findMany({
-      where: {
-        id: { in: productIds.length > 0 ? productIds : matchedProducts.slice(0, 3).map((p) => p.id) },
-        status: 'active',
-      },
-      include: {
-        category: true,
-        sub_category: true,
-        ratings: true,
-      },
-    });
+    // Step 6: Map to Full Product Entities for UI Cards ONLY when user requested products
+    let recommendedProductCards: any[] = [];
+    if (wantsProducts && productIds.length > 0) {
+      recommendedProductCards = await this.prisma.product.findMany({
+        where: {
+          id: { in: productIds },
+          status: 'active',
+        },
+        include: {
+          category: true,
+          sub_category: true,
+          ratings: true,
+        },
+      });
+
+      // Preserve recommendation order
+      recommendedProductCards.sort((a, b) => productIds.indexOf(a.id) - productIds.indexOf(b.id));
+    } else {
+      productIds = [];
+    }
 
     return {
       reply: cleanReply,
@@ -86,8 +119,113 @@ export class AiService {
   }
 
   /**
-   * Database Grounding: Real-time Shipping Context
+   * STREAM CHAT VIA SERVER-SENT EVENTS (SSE)
+   * Emits tokens chunk-by-chunk for a smooth typewriter effect
+   * @param dto ChatRequestDto
+   * @returns Observable<MessageEvent>
    */
+  // region Stream Chat
+  streamChat(dto: ChatRequestDto): Observable<MessageEvent> {
+    return new Observable<MessageEvent>((subscriber) => {
+      let isCancelled = false;
+
+      (async () => {
+        let heartbeatTimer: NodeJS.Timeout | null = null;
+
+        try {
+          // 1. Initial status event so frontend knows the assistant is processing
+          subscriber.next({
+            data: { type: 'status', message: 'Checking inventory & store policies...' } as SseAiEvent,
+          });
+
+          // Heartbeat keep-alive every 3.5s to ensure Docker / proxies / browser never drop idle connection
+          const dynamicStatuses = [
+            'Analyzing your skincare preferences...',
+            'Searching authentic catalog & real-time stock...',
+            'Consulting beauty advisor knowledge base...',
+          ];
+          let statusIndex = 0;
+          heartbeatTimer = setInterval(() => {
+            if (!isCancelled && !subscriber.closed) {
+              const msg = dynamicStatuses[statusIndex % dynamicStatuses.length];
+              statusIndex++;
+              subscriber.next({
+                data: { type: 'status', message: msg } as SseAiEvent,
+              });
+            }
+          }, 3500);
+
+          // 2. Execute database grounding & LLM completion
+          const { reply, productIds, products } = await this.processChat(dto);
+
+          if (heartbeatTimer) {
+            clearInterval(heartbeatTimer);
+            heartbeatTimer = null;
+          }
+
+          if (isCancelled || subscriber.closed) return;
+
+          // 3. Emit tokens with typewriter pacing
+          // Split into words while retaining whitespace and punctuation
+          const tokens = reply.match(/\S+\s*/g) || [reply];
+
+          for (const token of tokens) {
+            if (isCancelled || subscriber.closed) break;
+
+            subscriber.next({
+              data: { type: 'token', token } as SseAiEvent,
+            });
+
+            // 25ms delay per token produces a natural reading / typing rhythm
+            await new Promise((res) => setTimeout(res, 25));
+          }
+
+          if (isCancelled || subscriber.closed) return;
+
+          // 4. Emit structured product card entities for the carousel/recommendations
+          if (products && products.length > 0) {
+            subscriber.next({
+              data: { type: 'products', products, productIds } as SseAiEvent,
+            });
+          }
+
+          // 5. Emit completion event
+          subscriber.next({
+            data: { type: 'done' } as SseAiEvent,
+          });
+
+          subscriber.complete();
+        } catch (error) {
+          if (heartbeatTimer) {
+            clearInterval(heartbeatTimer);
+            heartbeatTimer = null;
+          }
+
+          if (!subscriber.closed) {
+            this.logger.error(`Error in streamChat: ${error instanceof Error ? error.message : String(error)}`);
+            subscriber.next({
+              data: {
+                type: 'token',
+                token: 'I apologize, but I encountered a momentary connection issue. Please feel free to ask again or contact our support team on WhatsApp!',
+              } as SseAiEvent,
+            });
+            subscriber.next({ data: { type: 'done' } as SseAiEvent });
+            subscriber.complete();
+          }
+        }
+      })();
+
+      return () => {
+        isCancelled = true;
+      };
+    });
+  }
+
+  /**
+   * Get Shipping Context
+   * @returns Shipping Context
+   */
+  // region Shipping Context
   private async getShippingContext(): Promise<string> {
     try {
       const shipping = await this.prisma.shippingCost.findFirst({
@@ -105,8 +243,10 @@ export class AiService {
   }
 
   /**
-   * Database Grounding: Site Settings Context
+   * Get Site Settings Context
+   * @returns Site Settings Context
    */
+  // region Site Settings Context
   private async getSiteSettingsContext(): Promise<string> {
     try {
       const setting = await this.prisma.siteSetting.findFirst({
@@ -119,30 +259,63 @@ export class AiService {
   }
 
   /**
-   * Database Grounding: Relevant Product Search
+   * Database Grounding: Semantic Vector Search & Keyword Fallback
+   * @param query 
+   * @returns MatchedProduct[]
    */
-  private async searchProducts(query: string): Promise<any[]> {
-    const cleanTokens = query
-      .toLowerCase()
-      .replace(/[^\w\s\u0980-\u09FF]/gi, ' ')
-      .split(/\s+/)
-      .filter((t) => t.length > 2);
-
-    let whereClause: any = { status: 'active' };
-
-    if (cleanTokens.length > 0) {
-      whereClause = {
-        status: 'active',
-        OR: cleanTokens.flatMap((token) => [
-          { title: { contains: token, mode: 'insensitive' } },
-          { description: { contains: token, mode: 'insensitive' } },
-          { category: { name: { contains: token, mode: 'insensitive' } } },
-          { sub_category: { name: { contains: token, mode: 'insensitive' } } },
-        ]),
-      };
-    }
-
+  // region Search Products
+  private async searchProducts(query: string): Promise<MatchedProduct[]> {
     try {
+      // Step 1: Semantic Vector Search via Dedicated AI Vector DB (pgvector)
+      if (this.vectorDb.isReady) {
+        const queryEmbedding = await this.embeddingService.generateEmbedding(query);
+        const similarResults = await this.vectorDb.searchSimilarProducts(queryEmbedding, 6);
+
+        if (similarResults.length > 0) {
+          const matchedIds = similarResults.map((s) => s.product_id);
+
+          const products = await this.prisma.product.findMany({
+            where: {
+              id: { in: matchedIds },
+              status: 'active',
+            },
+            include: {
+              category: true,
+              sub_category: true,
+            },
+          });
+
+          // Preserve vector similarity ranking order
+          products.sort((a, b) => matchedIds.indexOf(a.id) - matchedIds.indexOf(b.id));
+
+          if (products.length > 0) {
+            this.logger.log(`Semantic Vector RAG matched ${products.length} products for: "${query}"`);
+            return products;
+          }
+        }
+      }
+
+      // Step 2: Keyword Fallback (if Vector DB empty or returning 0)
+      const cleanTokens = query
+        .toLowerCase()
+        .replace(/[^\w\s\u0980-\u09FF]/gi, ' ')
+        .split(/\s+/)
+        .filter((t) => t.length > 2);
+
+      let whereClause: any = { status: 'active' };
+
+      if (cleanTokens.length > 0) {
+        whereClause = {
+          status: 'active',
+          OR: cleanTokens.flatMap((token) => [
+            { title: { contains: token, mode: 'insensitive' } },
+            { description: { contains: token, mode: 'insensitive' } },
+            { category: { name: { contains: token, mode: 'insensitive' } } },
+            { sub_category: { name: { contains: token, mode: 'insensitive' } } },
+          ]),
+        };
+      }
+
       let products = await this.prisma.product.findMany({
         where: whereClause,
         take: 6,
@@ -153,7 +326,7 @@ export class AiService {
         orderBy: { created_at: 'desc' },
       });
 
-      // If no exact keyword match found, provide latest active products for context
+      // Step 3: If no keyword match found, supply latest active products for context
       if (products.length === 0) {
         products = await this.prisma.product.findMany({
           where: { status: 'active' },
@@ -174,9 +347,90 @@ export class AiService {
   }
 
   /**
-   * Constructs the System Prompt with Multilingual & Grounding Rules
+   * Checks if the user is explicitly requesting product recommendations or confirming interest.
    */
-  private buildSystemPrompt(shippingContext: string, settingsContext: string, products: any[]): string {
+  // region Is User Asking Products
+  private isUserAskingForProducts(query: string, history?: { role: string; content: string }[]): boolean {
+    const q = query.toLowerCase().trim();
+
+    // 1. Operational & store policy inquiries are NEVER product recommendation requests
+    const nonProductIntent =
+      /\b(shipping|delivery|track|tracking|shipment|courier|return|refund|exchange|policy|policies|payment|cash on delivery|cod|contact|phone|whatsapp|address|location|office|help desk|ডেলিভারি|শিপিং|ট্র্যাক|ঠিকানা|যোগাযোগ|ফেরত)\b/i;
+    if (nonProductIntent.test(q)) {
+      return false;
+    }
+
+    // 2. Explicit product request phrases
+    const explicitProductPatterns = [
+      /\b(suggest|recommend)\b.*\b(product|products|item|items|something|brand|skincare|routine|serum|cream|moisturizer|sunscreen|cleanser|oil|lotion|shampoo|lipstick|foundation)\b/i,
+      /\b(product|products|item|items)\b.*\b(suggest|recommend|recommendation|suggestions|suggestion)\b/i,
+      /\b(show me|give me|tell me)\b.*\b(product|products|items|options|collection|catalog)\b/i,
+      /\b(what|which)\b.*\b(product|products|serum|cream|moisturizer|sunscreen|cleanser)\b.*\b(should|to|can)\b/i,
+      /\b(want to buy|looking to buy|order product|purchase)\b/i,
+      /\b(suggest me|recommend me|suggest for me|recommend for me)\b/i,
+      /\b(প্রোডাক্ট|পণ্য)\b.*\b(সাজেস্ট|সুপারিশ|দেখান|কিনব|কিনি|লাগবে)\b/i,
+      /\b(সাজেস্ট|সুপারিশ)\b.*\b(করুন|করো|দিন|দেখান)\b/i,
+      /\b(কোন প্রোডাক্ট|কী প্রোডাক্ট|কি প্রোডাক্ট)\b/i,
+    ];
+
+    if (explicitProductPatterns.some((pattern) => pattern.test(q))) {
+      return true;
+    }
+
+    // 3. Check affirmative confirmation ONLY if the assistant previously asked to suggest products
+    const affirmativePatterns = [
+      /^yes\b/i,
+      /^yeah\b/i,
+      /^yep\b/i,
+      /^sure\b/i,
+      /^ok\b/i,
+      /^okay\b/i,
+      /^please\b/i,
+      /^pls\b/i,
+      /^please do\b/i,
+      /^hae\b/i,
+      /^ha\b/i,
+      /^haa\b/i,
+      /^ji\b/i,
+      /^হাঁ/i,
+      /^হ্যাঁ/i,
+      /^জি/i,
+      /^অবশ্যই/i,
+      /^দেখান/i,
+      /^বলুন/i,
+    ];
+
+    const isAffirmative = affirmativePatterns.some((pattern) => pattern.test(q));
+
+    if (isAffirmative && history && history.length > 0) {
+      const lastAssistantMsg = [...history].reverse().find((m) => m.role === 'assistant');
+      if (lastAssistantMsg) {
+        const lower = lastAssistantMsg.content.toLowerCase();
+        if (
+          lower.includes('suggest') ||
+          lower.includes('velina elite has') ||
+          lower.includes('সাজেস্ট') ||
+          lower.includes('উপকারে আসবে') ||
+          lower.includes('পণ্য রয়েছে')
+        ) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Constructs the System Prompt with Multilingual, Grounding & Permission Rules
+   */
+  // region Build System Prompt
+  private buildSystemPrompt(
+    shippingContext: string,
+    settingsContext: string,
+    products: MatchedProduct[],
+    wantsProducts: boolean,
+  ): string {
     const productCatalog = products
       .map(
         (p) =>
@@ -203,21 +457,36 @@ REAL-TIME STORE POLICIES:
 AVAILABLE PRODUCTS FROM VELINA ELITE DATABASE:
 ${productCatalog || 'Catalog is currently loading.'}
 
-RECOMMENDATION & FORMATTING INSTRUCTIONS:
-- Use clean, well-formatted Markdown:
-  • Highlight product names in **bold**, e.g. **Skin1004 Centella Sun Serum**.
-  • Use neat bullet points (- ) when listing multiple recommendations or benefits.
-  • Do NOT write "(ID X)" or "[ID: X]" inside your conversational sentences. Keep product names completely natural.
-- Whenever you recommend or mention any products from the list above, you MUST include their IDs at the very end of your response inside this exact tag:
+STRICT PRODUCT RECOMMENDATION RULES:
+${
+  wantsProducts
+    ? `The customer HAS SPECIFICALLY REQUESTED product recommendations or confirmed they want to see product options.
+- Warmly introduce your recommendations with: "Velina Elite has these items that will help you out, please check!" (or in Bangla: "ভেলিনা এলিট-এ এই চমৎকার পণ্যগুলো রয়েছে যা আপনার উপকারে আসবে, দেখে নিন:").
+- Highlight product names in **bold**, e.g. **Skin1004 Centella Sun Serum**.
+- At the very end of your response, you MUST include the exact tag with matching IDs:
   [RECOMMENDED_PRODUCTS: id1, id2]
-- Example: "Here are our top serums for radiant skin! [RECOMMENDED_PRODUCTS: 3, 5]"
-- If no specific products are recommended (e.g. for general delivery or greeting questions), do NOT add the tag.`;
+- Only include IDs from the AVAILABLE PRODUCTS list above.`
+    : `The customer HAS NOT asked for products yet.
+- DO NOT recommend or mention specific products.
+- DO NOT display product cards.
+- NEVER include the [RECOMMENDED_PRODUCTS: ...] tag.
+- If the customer asks about shipping, orders, delivery, returns, or store policies: answer their question clearly and politely. DO NOT offer or push products.
+- If the customer asks for beauty/skincare consultation: provide routine guidance, and end by asking:
+  "Can I suggest you products we have for this? Velina Elite has these items that will help you out, please check!"
+  (or in Bangla: "আপনি কি চান আমি এর জন্য কিছু প্রোডাক্ট সাজেস্ট করি? ভেলিনা এলিট-এ এমন চমৎকার কিছু পণ্য রয়েছে যা আপনার উপকারে আসবে!")`
+}`;
   }
 
   /**
    * Extracts [RECOMMENDED_PRODUCTS: ...] tags and cleans text
    */
-  private extractProductRecommendations(text: string, matchedProducts: any[]): { cleanReply: string; productIds: number[] } {
+  // region Prouduct Reommends
+  private extractProductRecommendations(
+    text: string,
+    matchedProducts: MatchedProduct[],
+    wantsProducts: boolean,
+    userQuery: string,
+  ): { cleanReply: string; productIds: number[] } {
     const regex = /\[RECOMMENDED_PRODUCTS:\s*([\d,\s]+)\]/i;
     const match = text.match(regex);
 
@@ -226,10 +495,12 @@ RECOMMENDATION & FORMATTING INSTRUCTIONS:
 
     if (match) {
       cleanReply = text.replace(match[0], '').trim();
-      productIds = match[1]
-        .split(',')
-        .map((s) => parseInt(s.trim(), 10))
-        .filter((n) => !isNaN(n));
+      if (wantsProducts) {
+        productIds = match[1]
+          .split(',')
+          .map((s) => parseInt(s.trim(), 10))
+          .filter((n) => !isNaN(n));
+      }
     }
 
     // Clean up any stray "(ID 11)" leaked into the conversation
@@ -238,14 +509,46 @@ RECOMMENDATION & FORMATTING INSTRUCTIONS:
       .replace(/\s*\[(?:ID|id):\s*\d+\]/g, '')
       .trim();
 
-    // If text mentions items but didn't output tag, take top matched items if relevant
-    if (productIds.length === 0 && matchedProducts.length > 0) {
-      const lower = text.toLowerCase();
-      const relevant = matchedProducts.filter((p) =>
-        lower.includes(p.title.toLowerCase()) || lower.includes('recommend') || lower.includes('সুপারিশ') || lower.includes('পণ্য')
+    // If user explicitly asked for products, but model mentioned products in bold without the tag
+    if (wantsProducts && productIds.length === 0 && matchedProducts.length > 0) {
+      const lowerReply = cleanReply.toLowerCase();
+      const mentioned = matchedProducts.filter((p) =>
+        lowerReply.includes(p.title.toLowerCase())
       );
-      if (relevant.length > 0) {
-        productIds = relevant.slice(0, 3).map((p) => p.id);
+      if (mentioned.length > 0) {
+        productIds = mentioned.slice(0, 3).map((p) => p.id);
+      } else {
+        productIds = matchedProducts.slice(0, 3).map((p) => p.id);
+      }
+    }
+
+    // If user did NOT ask for products:
+    // Strictly guarantee that no product IDs are returned
+    if (!wantsProducts) {
+      productIds = [];
+
+      // Check if this inquiry is specifically about skincare, beauty, or cosmetic concerns
+      const isBeautyOrSkinQuery =
+        /\b(skin|skincare|face|acne|pimple|breakout|dry|oily|sensitive|wrinkle|aging|dark spot|pigmentation|glow|hydration|barrier|sunscreen|spf|serum|cream|moisturizer|cleanser|toner|hair|haircare|dandruff|makeup|lipstick|foundation|ত্বক|ব্রণ|তৈলাক্ত|শুষ্ক|চুল|রূপচর্চা)\b/i.test(userQuery);
+
+      const isStorePolicy =
+        /\b(shipping|delivery|track|tracking|shipment|courier|return|refund|exchange|policy|policies|payment|contact|phone|whatsapp|address|ডেলিভারি|শিপিং|ট্র্যাক)\b/i.test(userQuery);
+
+      const lowerReply = cleanReply.toLowerCase();
+      const hasOffer =
+        lowerReply.includes('suggest') ||
+        lowerReply.includes('velina elite has') ||
+        lowerReply.includes('সাজেস্ট') ||
+        lowerReply.includes('উপকারে আসবে') ||
+        lowerReply.includes('পণ্য রয়েছে');
+
+      // Only prompt for product suggestions if this is a genuine beauty/skin inquiry AND not a store policy question
+      if (!hasOffer && isBeautyOrSkinQuery && !isStorePolicy) {
+        const isBangla = /[\u0980-\u09FF]/.test(userQuery) || /\b(koto|ache|bhai|bhaiya|lagbe|hobe|er|jonno)\b/i.test(userQuery);
+        const offerPrompt = isBangla
+          ? `\n\nআপনি কি চান আমি এর জন্য কিছু প্রোডাক্ট সাজেস্ট করি? ভেলিনা এলিট-এ এমন চমৎকার কিছু পণ্য রয়েছে যা আপনার উপকারে আসবে!`
+          : `\n\nCan I suggest you products we have for this? Velina Elite has these items that will help you out, please check!`;
+        cleanReply += offerPrompt;
       }
     }
 
@@ -255,25 +558,54 @@ RECOMMENDATION & FORMATTING INSTRUCTIONS:
   /**
    * Local Fallback Generator in case LLM service experiences network issues
    */
-  private generateLocalFallback(query: string, products: any[], shippingContext: string): string {
+  // region Local Fallback
+  private generateLocalFallback(
+    query: string,
+    products: MatchedProduct[],
+    shippingContext: string,
+    history?: { role: string; content: string }[],
+  ): string {
     const q = query.toLowerCase();
-    const isBangla = /[\u0980-\u09FF]/.test(query) || q.includes('koto') || q.includes('ache') || q.includes('bhai');
+    const isBangla = /[\u0980-\u09FF]/.test(query) || /\b(koto|ache|bhai|bhaiya|lagbe|hobe|er|jonno)\b/i.test(query);
 
-    if (q.includes('delivery') || q.includes('shipping') || q.includes('charge') || q.includes('ডেলিভারি') || q.includes('খরচ')) {
+    // 1. Shipping, Order, or Delivery questions (NEVER suggest products here)
+    if (
+      q.includes('delivery') ||
+      q.includes('shipping') ||
+      q.includes('track') ||
+      q.includes('order') ||
+      q.includes('charge') ||
+      q.includes('ডেলিভারি') ||
+      q.includes('খরচ')
+    ) {
       return isBangla
-        ? `📦 ভেলিনা এলিট ডেলিভারি তথ্য:\n${shippingContext}\nক্যাশ অন ডেলিভারি সুবিধা রয়েছে!`
-        : `📦 Velina Elite Delivery Information:\n${shippingContext}\nCash on Delivery is available nationwide!`;
+        ? `📦 ভেলিনা এলিট ডেলিভারি তথ্য:\n${shippingContext}\nক্যাশ অন ডেলিভারি সুবিধা রয়েছে! কোনো অর্ডার ট্র্যাকিং সংক্রান্ত সহায়তার জন্য যেকোনো সময় আমাদের জানান।`
+        : `📦 Velina Elite Delivery Information:\n${shippingContext}\nCash on Delivery is available nationwide! If you need order tracking assistance or any other information, please let us know.`;
     }
 
-    if (products.length > 0) {
+    const wantsProducts = this.isUserAskingForProducts(query, history);
+
+    // 2. If user specifically requested product suggestions or agreed to see them
+    if (wantsProducts && products.length > 0) {
       const ids = products.slice(0, 3).map((p) => p.id).join(', ');
       return isBangla
-        ? `ধন্যবাদ আপনার বার্তার জন্য! আপনার পছন্দের জন্য আমাদের সেরা কিছু কালেকশন নিচে দেওয়া হলো:\n[RECOMMENDED_PRODUCTS: ${ids}]`
-        : `Thank you for reaching out! Here are some of our finest authentic products for you:\n[RECOMMENDED_PRODUCTS: ${ids}]`;
+        ? `ভেলিনা এলিট-এ এই চমৎকার পণ্যগুলো রয়েছে যা আপনার উপকারে আসবে, দেখে নিন:\n[RECOMMENDED_PRODUCTS: ${ids}]`
+        : `Velina Elite has these items that will help you out, please check!\n[RECOMMENDED_PRODUCTS: ${ids}]`;
     }
 
+    // 3. Beauty or Skincare inquiry (give advice first, offer to suggest products without showing cards)
+    const isBeautyOrSkinQuery =
+      /\b(skin|skincare|face|acne|pimple|breakout|dry|oily|sensitive|wrinkle|aging|dark spot|pigmentation|glow|hydration|barrier|sunscreen|spf|serum|cream|moisturizer|cleanser|toner|hair|haircare|dandruff|makeup|lipstick|foundation|ত্বক|ব্রণ|তৈলাক্ত|শুষ্ক|চুল|রূপচর্চা)\b/i.test(query);
+
+    if (isBeautyOrSkinQuery) {
+      return isBangla
+        ? `ত্বকের সুস্থতা বজায় রাখতে একটি সঠিক স্কিনকেয়ার রুটিন (ক্লিনজার, হাইড্রেটিং ময়েশ্চারাইজার এবং ব্রড-স্পেকট্রাম সানস্ক্রিন) অত্যন্ত প্রয়োজনীয়।\n\nআপনি কি চান আমি এর জন্য কিছু প্রোডাক্ট সাজেস্ট করি? ভেলিনা এলিট-এ এমন চমৎকার কিছু পণ্য রয়েছে যা আপনার উপকারে আসবে!`
+        : `Healthy, glowing skin starts with understanding your skin barrier! A gentle pH-balanced cleanser, deep restorative hydration, and daily broad-spectrum SPF make the ideal foundation.\n\nCan I suggest you products we have for this? Velina Elite has these items that will help you out, please check!`;
+    }
+
+    // 4. General greeting
     return isBangla
-      ? `হ্যালো! আমি ভেলিনা এআই অ্যাসিস্ট্যান্ট। কীভাবে আপনাকে সাহায্য করতে পারি? পণ্য বা ডেলিভারি সম্পর্কে যেকোনো প্রশ্ন করতে পারেন।`
-      : `Hello! I am Velina AI Assistant. How can I assist you with your beauty and skincare routine today?`;
+      ? `হ্যালো! আমি ভেলিনা এআই অ্যাসিস্ট্যান্ট। কীভাবে আপনাকে সাহায্য করতে পারি? আপনার ত্বকের যত্ন বা রূপচর্চা সম্পর্কে আমাকে নির্দ্বিধায় বলুন।`
+      : `Hello! I am Velina AI Assistant, your personal luxury beauty advisor. How can I assist you with your skincare or beauty routine today?`;
   }
 }

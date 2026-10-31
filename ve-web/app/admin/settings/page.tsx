@@ -31,6 +31,7 @@ import {
   Sparkles,
   AlertTriangle,
   RefreshCw,
+  Bot,
 } from "lucide-react";
 import { fetchApi } from "@/lib/api";
 import { useStore } from "@/lib/store";
@@ -43,6 +44,7 @@ interface SiteSettings {
   whatsapp_number: string;
   whatsapp_message: string;
   is_whatsapp_active: boolean;
+  is_ai_active?: boolean;
   updated_at?: string;
 }
 
@@ -118,6 +120,7 @@ export default function SettingsPage() {
           whatsapp_number: data.whatsapp_number || "8801347375533",
           whatsapp_message: data.whatsapp_message || "Hello! I have a question about Velina Elite.",
           is_whatsapp_active: data.is_whatsapp_active ?? true,
+          is_ai_active: data.is_ai_active ?? true,
           updated_at: data.updated_at,
         });
       }
@@ -378,6 +381,7 @@ export default function SettingsPage() {
         whatsapp_number: cleanNumber,
         whatsapp_message: settings.whatsapp_message,
         is_whatsapp_active: settings.is_whatsapp_active,
+        is_ai_active: settings.is_ai_active,
       };
 
       const updated = await fetchApi<SiteSettings>("/site-settings", {
@@ -391,6 +395,7 @@ export default function SettingsPage() {
           whatsapp_number: updated.whatsapp_number || cleanNumber,
           whatsapp_message: updated.whatsapp_message || "",
           is_whatsapp_active: updated.is_whatsapp_active ?? true,
+          is_ai_active: updated.is_ai_active ?? true,
           updated_at: updated.updated_at,
         }));
       }
@@ -462,14 +467,19 @@ export default function SettingsPage() {
               setActiveTab("whatsapp");
               setToastMessage(null);
             }}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-5 py-2.5 text-sm font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap ${
               activeTab === "whatsapp"
-                ? "bg-gradient-to-r from-[#25D366] to-emerald-600 text-white shadow-md shadow-[#25D366]/20"
+                ? "bg-gradient-to-r from-[#e25c80] via-[#c44062] to-[#25D366] text-white shadow-md"
                 : "text-muted hover:text-foreground hover:bg-surface"
             }`}
           >
-            <MessageCircle size={16} />
-            WhatsApp Contract & Chat
+            <Sparkles size={16} />
+            <div className="flex flex-col items-start leading-tight">
+              <span className="font-extrabold text-sm">Velina Live Support</span>
+              <span className={`text-[9px] font-black uppercase tracking-wider ${activeTab === "whatsapp" ? "text-rose-100" : "text-velina-rose"}`}>
+                Velina-AI
+              </span>
+            </div>
           </button>
 
           <button
@@ -643,11 +653,11 @@ export default function SettingsPage() {
           )
         )}
 
-        {/* ─── TAB 2: WHATSAPP CONFIGURATION ─── */}
+        {/* ─── TAB 2: VELINA LIVE SUPPORT CONTROL CENTER ─── */}
         {activeTab === "whatsapp" && (
           loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="text-muted">Loading store settings...</div>
+              <div className="text-muted">Loading live support preferences...</div>
             </div>
           ) : (
             <form onSubmit={handleSaveWhatsApp} className="space-y-6">
@@ -655,13 +665,18 @@ export default function SettingsPage() {
                 <div className="p-6 border-b border-border">
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#25D366]/10 text-[#25D366]">
-                        <MessageCircle size={20} />
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#e25c80] via-[#c44062] to-[#25D366] text-white shadow-md">
+                        <Sparkles size={20} className="animate-pulse" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-foreground">WhatsApp Contract & Support Number</h3>
-                        <p className="text-sm text-muted">
-                          Assign the official WhatsApp number for customer inquiries and contract chats
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-black text-foreground">Velina Live Support</h3>
+                          <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-rose-500 to-amber-500 text-white rounded-full">
+                            Velina-AI
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted mt-0.5">
+                          Control center for AI Assistant and WhatsApp customer engagement launcher
                         </p>
                       </div>
                     </div>
@@ -681,25 +696,78 @@ export default function SettingsPage() {
 
                 <div className="p-6 space-y-6">
 
-                  {/* Active Switch */}
-                  <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-surface/50">
-                    <div>
-                      <div className="text-sm font-semibold text-foreground">Enable Floating WhatsApp Button</div>
-                      <div className="text-xs text-muted">Show the interactive floating WhatsApp button on storefront pages</div>
+                  {/* ── CONTROL 1: VELINA-AI CHAT ENGINE SWITCH ── */}
+                  <div className="p-5 rounded-2xl border border-border bg-surface/50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-[#e25c80] to-[#b38e5d] text-white shadow-sm">
+                          <Bot size={18} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-extrabold text-foreground">Velina-AI Chat Engine</h4>
+                            <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full ${
+                              settings.is_ai_active !== false
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                                : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                            }`}>
+                              {settings.is_ai_active !== false ? "🟢 Active & Responding" : "🔴 Disabled"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted mt-0.5">
+                            Enable interactive 24/7 AI beauty advisor and product finder on storefront pages
+                          </p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={settings.is_ai_active !== false}
+                          onChange={(e) => setSettings({ ...settings, is_ai_active: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#e25c80] peer-checked:to-[#c44062]"></div>
+                      </label>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.is_whatsapp_active}
-                        onChange={(e) => setSettings({ ...settings, is_whatsapp_active: e.target.checked })}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#25D366]"></div>
-                    </label>
+                  </div>
+
+                  {/* ── CONTROL 2: WHATSAPP SUPPORT SWITCH ── */}
+                  <div className="p-5 rounded-2xl border border-border bg-surface/50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#25D366] text-white shadow-sm">
+                          <MessageCircle size={18} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-extrabold text-foreground">WhatsApp Human Support</h4>
+                            <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full ${
+                              settings.is_whatsapp_active !== false
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                                : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                            }`}>
+                              {settings.is_whatsapp_active !== false ? "🟢 Active" : "🔴 Disabled"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted mt-0.5">
+                            Show official WhatsApp direct messaging button in live support launcher
+                          </p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={settings.is_whatsapp_active !== false}
+                          onChange={(e) => setSettings({ ...settings, is_whatsapp_active: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#25D366]"></div>
+                      </label>
+                    </div>
                   </div>
 
                   {/* Phone Number */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 pt-2">
                     <label htmlFor="whatsapp_number" className="flex items-center gap-2 text-sm font-semibold text-foreground">
                       <Phone size={16} className="text-[#25D366]" />
                       WhatsApp Phone Number (With Country Code)
@@ -722,7 +790,7 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     <label htmlFor="whatsapp_message" className="flex items-center gap-2 text-sm font-semibold text-foreground">
                       <MessageSquare size={16} className="text-velina-rose" />
-                      Pre-filled Chat Message (Optional)
+                      Pre-filled WhatsApp Chat Message (Optional)
                     </label>
                     <textarea
                       id="whatsapp_message"
@@ -747,15 +815,15 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  {/* Submit WhatsApp Button */}
+                  {/* Submit Button */}
                   <div className="flex justify-end pt-4 border-t border-border">
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#25D366] to-emerald-600 px-7 py-3 text-sm font-bold text-white shadow-md shadow-[#25D366]/25 hover:opacity-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-velina-rose to-velina-magenta px-7 py-3 text-sm font-bold text-white shadow-md hover:opacity-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       <Save size={16} />
-                      {isSubmitting ? "Saving WhatsApp Settings..." : "Save WhatsApp Settings"}
+                      {isSubmitting ? "Saving Support Settings..." : "Save Live Support Settings"}
                     </button>
                   </div>
 

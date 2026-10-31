@@ -26,41 +26,24 @@ function WhatsAppIcon({ className }: { className?: string }) {
 
 export default function FloatingChatWidget() {
   const pathname = usePathname();
-  const { isWhatsAppHidden, setWhatsAppHidden } = useStore();
+  const { isWhatsAppHidden, setWhatsAppHidden, siteSettings } = useStore();
 
-  const [settings, setSettings] = useState<{
-    whatsapp_number?: string;
-    whatsapp_message?: string;
-    is_whatsapp_active?: boolean;
-  }>({
+  const settings = siteSettings || {
     whatsapp_number: "8801347375533",
     whatsapp_message: "Hello! I have a question about Velina Elite.",
     is_whatsapp_active: true,
-  });
+    is_ai_active: true,
+  };
 
-  const whatsappUrlRef = useRef(buildWhatsAppUrl("8801347375533", "Hello! I have a question about Velina Elite."));
+  const whatsappUrlRef = useRef(buildWhatsAppUrl(settings.whatsapp_number, settings.whatsapp_message));
+
+  useEffect(() => {
+    whatsappUrlRef.current = buildWhatsAppUrl(settings.whatsapp_number, settings.whatsapp_message);
+  }, [settings.whatsapp_number, settings.whatsapp_message]);
 
   // Floating speed-dial open/closed state & AI Modal state
   const [isOpen, setIsOpen] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
-
-  // Fetch site settings
-  useEffect(() => {
-    fetchApi<{
-      whatsapp_number?: string;
-      whatsapp_message?: string;
-      is_whatsapp_active?: boolean;
-    }>("/site-settings")
-      .then((data) => {
-        if (data) {
-          setSettings(data);
-          whatsappUrlRef.current = buildWhatsAppUrl(data.whatsapp_number, data.whatsapp_message);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load site settings for Chat Head:", err);
-      });
-  }, []);
 
   const posRef = useRef({ top: -500, left: -500 });
   const [pos, _setPos] = useState({ top: -500, left: -500 });
@@ -250,11 +233,25 @@ export default function FloatingChatWidget() {
 
   if (pathname.startsWith("/admin")) return null;
 
-  const hidden = isWhatsAppHidden || settings.is_whatsapp_active === false;
+  const isAiActive = settings.is_ai_active !== false;
+  const isWhatsAppActive = settings.is_whatsapp_active !== false;
+
+  const hidden = isWhatsAppHidden || (!isAiActive && !isWhatsAppActive);
 
   const handleChatHeadClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (didMove.current) return;
+    
+    // If only one option is active, open it directly on click!
+    if (isAiActive && !isWhatsAppActive) {
+      openVelinaAssistant();
+      return;
+    }
+    if (isWhatsAppActive && !isAiActive) {
+      openWhatsApp();
+      return;
+    }
+    
     setIsOpen((prev) => !prev);
   };
 
@@ -279,49 +276,53 @@ export default function FloatingChatWidget() {
             <div className="absolute bottom-full mb-3 flex flex-col gap-3 items-end animate-in fade-in slide-in-from-bottom-4 duration-200 z-[10001]">
               
               {/* Option 1: Velina AI Assistant */}
-              <div
-                onClick={openVelinaAssistant}
-                className="flex items-center gap-2.5 cursor-pointer group pointer-events-auto"
-              >
-                <div className="hidden sm:flex flex-col items-end px-3 py-1.5 rounded-2xl bg-zinc-900/90 dark:bg-zinc-800/90 text-white backdrop-blur-md shadow-xl border border-white/10 transition-transform group-hover:scale-105">
-                  <span className="text-[11px] font-bold text-rose-300 flex items-center gap-1">
-                    <Sparkles size={11} /> Velina AI Assistant
-                  </span>
-                  <span className="text-[9px] text-zinc-300">24/7 Smart Beauty Guide</span>
-                </div>
-                <button
-                  type="button"
+              {isAiActive && (
+                <div
                   onClick={openVelinaAssistant}
-                  aria-label="Open Velina AI Assistant"
-                  className="relative flex h-13 w-13 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#e25c80] via-[#c44062] to-[#b38e5d] text-white shadow-[0_8px_25px_rgba(226,92,128,0.5)] ring-2 ring-white/30 hover:scale-110 active:scale-95 transition-all duration-200"
+                  className="flex items-center gap-2.5 cursor-pointer group pointer-events-auto"
                 >
-                  <Sparkles className="h-6 w-6 animate-pulse" />
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white ring-2 ring-white">
-                    AI
-                  </span>
-                </button>
-              </div>
+                  <div className="hidden sm:flex flex-col items-end px-3 py-1.5 rounded-2xl bg-zinc-900/90 dark:bg-zinc-800/90 text-white backdrop-blur-md shadow-xl border border-white/10 transition-transform group-hover:scale-105">
+                    <span className="text-[11px] font-bold text-rose-300 flex items-center gap-1">
+                      <Sparkles size={11} /> Velina AI Assistant
+                    </span>
+                    <span className="text-[9px] text-zinc-300">24/7 Smart Beauty Guide</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={openVelinaAssistant}
+                    aria-label="Open Velina AI Assistant"
+                    className="relative flex h-13 w-13 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#e25c80] via-[#c44062] to-[#b38e5d] text-white shadow-[0_8px_25px_rgba(226,92,128,0.5)] ring-2 ring-white/30 hover:scale-110 active:scale-95 transition-all duration-200"
+                  >
+                    <Sparkles className="h-6 w-6 animate-pulse" />
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white ring-2 ring-white">
+                      AI
+                    </span>
+                  </button>
+                </div>
+              )}
 
               {/* Option 2: WhatsApp Support */}
-              <div
-                onClick={openWhatsApp}
-                className="flex items-center gap-2.5 cursor-pointer group pointer-events-auto"
-              >
-                <div className="hidden sm:flex flex-col items-end px-3 py-1.5 rounded-2xl bg-zinc-900/90 dark:bg-zinc-800/90 text-white backdrop-blur-md shadow-xl border border-white/10 transition-transform group-hover:scale-105">
-                  <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
-                    <MessageCircle size={11} /> WhatsApp Support
-                  </span>
-                  <span className="text-[9px] text-zinc-300">Human Agent & Orders</span>
-                </div>
-                <button
-                  type="button"
+              {isWhatsAppActive && (
+                <div
                   onClick={openWhatsApp}
-                  aria-label="Chat on WhatsApp"
-                  className="relative flex h-13 w-13 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_8px_25px_rgba(37,211,102,0.5)] ring-2 ring-white/30 hover:scale-110 active:scale-95 transition-all duration-200"
+                  className="flex items-center gap-2.5 cursor-pointer group pointer-events-auto"
                 >
-                  <WhatsAppIcon className="h-6 w-6" />
-                </button>
-              </div>
+                  <div className="hidden sm:flex flex-col items-end px-3 py-1.5 rounded-2xl bg-zinc-900/90 dark:bg-zinc-800/90 text-white backdrop-blur-md shadow-xl border border-white/10 transition-transform group-hover:scale-105">
+                    <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                      <MessageCircle size={11} /> WhatsApp Support
+                    </span>
+                    <span className="text-[9px] text-zinc-300">Human Agent & Orders</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={openWhatsApp}
+                    aria-label="Chat on WhatsApp"
+                    className="relative flex h-13 w-13 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_8px_25px_rgba(37,211,102,0.5)] ring-2 ring-white/30 hover:scale-110 active:scale-95 transition-all duration-200"
+                  >
+                    <WhatsAppIcon className="h-6 w-6" />
+                  </button>
+                </div>
+              )}
 
             </div>
           )}
@@ -406,7 +407,7 @@ export default function FloatingChatWidget() {
 
       {/* Interactive Velina AI Assistant Floating Chat Window */}
       <VelinaAssistantModal
-        isOpen={isAssistantOpen}
+        isOpen={isAssistantOpen && isAiActive}
         onClose={() => setIsAssistantOpen(false)}
         onOpenWhatsApp={openWhatsApp}
       />
