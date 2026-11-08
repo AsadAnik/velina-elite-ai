@@ -3,8 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CartsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
+  /**
+   * Get the cart of a customer
+   * @param customerId The ID of the customer
+   * @returns The cart of the customer
+   */
+  // region GET USER CART
   async getUserCart(customerId: number) {
     if (!customerId) return [];
     const cartItems = await this.prisma.cart.findMany({
@@ -27,6 +33,14 @@ export class CartsService {
     }));
   }
 
+  /**
+   * Add a product to the cart of a customer
+   * @param customerId The ID of the customer
+   * @param productId The ID of the product
+   * @param quantity The quantity of the product to add
+   * @returns The added cart item
+   */
+  // region ADD TO CART
   async addToCart(customerId: number, productId: number, quantity: number = 1) {
     // Check if product exists
     const product = await this.prisma.product.findUnique({
@@ -102,6 +116,14 @@ export class CartsService {
     };
   }
 
+  /**
+   * Update the quantity of a product in the cart of a customer
+   * @param customerId The ID of the customer
+   * @param productId The ID of the product
+   * @param quantity The new quantity of the product
+   * @returns The updated cart item
+   */
+  // region UPDATE CART ITEM
   async updateCartItem(customerId: number, productId: number, quantity: number) {
     if (quantity <= 0) {
       return this.removeFromCart(customerId, productId);
@@ -150,6 +172,13 @@ export class CartsService {
     };
   }
 
+  /**
+   * Remove a product from the cart of a customer
+   * @param customerId The ID of the customer
+   * @param productId The ID of the product
+   * @returns A message indicating that the product has been removed from the cart
+   */
+  // region REMOVE FROM CART
   async removeFromCart(customerId: number, productId: number) {
     const cart = await this.prisma.cart.findUnique({
       where: {
@@ -171,6 +200,12 @@ export class CartsService {
     return { message: 'Removed from cart' };
   }
 
+  /**
+   * Clear the cart of a customer
+   * @param customerId The ID of the customer
+   * @returns A message indicating that the cart has been cleared
+   */
+  // region CLEAR CART
   async clearCart(customerId: number) {
     await this.prisma.cart.deleteMany({
       where: { customer_id: customerId },

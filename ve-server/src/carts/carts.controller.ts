@@ -20,14 +20,26 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @Controller('carts')
 @UseGuards(JwtAuthGuard)
 export class CartsController {
-  constructor(private readonly cartsService: CartsService) {}
+  constructor(private readonly cartsService: CartsService) { }
 
+  /**
+   * Get the cart of a customer
+   * @param req The request object
+   * @returns The cart of the customer
+   */
   @Get()
   @ApiOperation({ summary: 'Get user cart' })
   getUserCart(@Request() req) {
     return this.cartsService.getUserCart(req.user.customerId);
   }
 
+  /**
+   * Add a product to the cart of a customer
+   * @param req The request object
+   * @param productId The ID of the product
+   * @param quantity The quantity of the product
+   * @returns The added cart item
+   */
   @Post(':productId')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Add product to cart' })
@@ -43,6 +55,13 @@ export class CartsController {
     );
   }
 
+  /**
+   * Update the quantity of a product in the cart of a customer
+   * @param req The request object
+   * @param productId The ID of the product
+   * @param quantity The quantity of the product
+   * @returns The updated cart item
+   */
   @Put(':productId')
   @ApiOperation({ summary: 'Update cart item quantity' })
   updateCartItem(
@@ -57,6 +76,12 @@ export class CartsController {
     );
   }
 
+  /**
+   * Remove a product from the cart of a customer
+   * @param req The request object
+   * @param productId The ID of the product
+   * @returns A message indicating that the product has been removed from the cart
+   */
   @Delete(':productId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove product from cart' })
@@ -67,6 +92,11 @@ export class CartsController {
     );
   }
 
+  /**
+   * Clear the cart of a customer
+   * @param req The request object
+   * @returns A message indicating that the cart has been cleared
+   */
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Clear cart' })

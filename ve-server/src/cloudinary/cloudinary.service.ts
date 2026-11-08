@@ -5,9 +5,13 @@ const streamifier = require('streamifier');
 
 @Injectable()
 export class CloudinaryService {
-  uploadFile(
-    file: Express.Multer.File,
-  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+  /**
+   * Upload a file to Cloudinary
+   * @param file The file to upload
+   * @returns The response from Cloudinary
+   */
+  // region UPLOAD FILE
+  uploadFile(file: Express.Multer.File, ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -26,6 +30,11 @@ export class CloudinaryService {
     });
   }
 
+  /**
+   * Delete a file from Cloudinary
+   * @param imageUrl The URL of the file to delete
+   */
+  // region DELETE FILE
   async deleteFile(imageUrl: string): Promise<void> {
     try {
       // Extract public_id from Cloudinary URL
@@ -44,6 +53,11 @@ export class CloudinaryService {
     }
   }
 
+  /**
+   * Delete multiple files from Cloudinary
+   * @param imageUrls An array of URLs of the files to delete
+   */
+  // region DEL. MULTIPLE FILES
   async deleteMultipleFiles(imageUrls: string[]): Promise<void> {
     await Promise.all(imageUrls.map((url) => this.deleteFile(url)));
   }

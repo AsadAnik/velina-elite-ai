@@ -11,6 +11,11 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
+  /**
+   * @description Admin/Owner login
+   * @param dto LoginDto object containing username and password
+   * @returns Access token and user information
+   */
   @Post('admin/login')
   @ApiOperation({ summary: 'Admin/Owner login' })
   @ApiBody({ type: LoginDto })
@@ -18,6 +23,11 @@ export class AuthController {
     return this.authService.adminLogin(dto);
   }
 
+  /**
+   * @description Customer login
+   * @param dto LoginDto object containing username and password
+   * @returns Access token and user information
+   */
   @Post('login')
   @ApiOperation({ summary: 'Customer login' })
   @ApiBody({ type: LoginDto })
@@ -25,6 +35,11 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
+  /**
+   * @description Customer register
+   * @param dto RegisterDto object containing user information
+   * @returns Access token and user information
+   */
   @Post('register')
   @ApiOperation({ summary: 'Customer register' })
   @ApiBody({ type: RegisterDto })
@@ -32,6 +47,12 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  /**
+   * @description Change user password
+   * @param req Request object containing user information
+   * @param dto ChangePasswordDto object containing password information
+   * @returns Message indicating successful password change
+   */
   @Post('change-password')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

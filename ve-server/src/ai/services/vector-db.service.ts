@@ -28,15 +28,10 @@ export class VectorDbService implements OnModuleInit, OnModuleDestroy {
    * and creates the schema and HNSW index if they do not exist.
    */
   async initDatabase() {
-    const connectionString =
-      process.env.AI_VECTOR_DATABASE_URL ||
-      'postgresql://ai_vector_user:ai_vector_password@localhost:5433/velina_ai_vectors';
+    const connectionString = process.env.AI_VECTOR_DATABASE_URL || 'postgresql://ai_vector_user:ai_vector_password@localhost:5433/velina_ai_vectors';
 
     try {
-      const isSsl =
-        connectionString.includes('sslmode=require') ||
-        connectionString.includes('neon.tech') ||
-        process.env.NODE_ENV === 'production';
+      const isSsl = connectionString.includes('sslmode=require') || connectionString.includes('neon.tech') || process.env.NODE_ENV === 'production';
 
       this.pool = new Pool({
         connectionString,
@@ -89,10 +84,8 @@ export class VectorDbService implements OnModuleInit, OnModuleDestroy {
    * Searches product embeddings using Cosine Distance (<=> operator).
    * Similarity score = 1 - (embedding <=> query_vector).
    */
-  async searchSimilarProducts(
-    queryEmbedding: number[],
-    limit = 6,
-  ): Promise<SimilarProductResult[]> {
+  // region SEARCH PRODUCTS
+  async searchSimilarProducts(queryEmbedding: number[], limit = 6): Promise<SimilarProductResult[]> {
     if (!this.isConnected || !this.pool) {
       return [];
     }
@@ -125,11 +118,8 @@ export class VectorDbService implements OnModuleInit, OnModuleDestroy {
   /**
    * Upserts an embedding for a specific product
    */
-  async upsertProductEmbedding(
-    productId: number,
-    searchText: string,
-    embedding: number[],
-  ): Promise<void> {
+  // region UPSERT EMBEDDING
+  async upsertProductEmbedding(productId: number, searchText: string, embedding: number[]): Promise<void> {
     if (!this.isConnected || !this.pool) return;
 
     try {
@@ -154,6 +144,7 @@ export class VectorDbService implements OnModuleInit, OnModuleDestroy {
   /**
    * Deletes an embedding if a product is removed
    */
+  // region DELETE EMBEDDING
   async deleteProductEmbedding(productId: number): Promise<void> {
     if (!this.isConnected || !this.pool) return;
 
@@ -170,6 +161,7 @@ export class VectorDbService implements OnModuleInit, OnModuleDestroy {
   /**
    * Returns existing product IDs already embedded in vector DB
    */
+  // region GET PRODUCT ID'S
   async getExistingProductIds(): Promise<Set<number>> {
     if (!this.isConnected || !this.pool) return new Set();
 
@@ -186,6 +178,7 @@ export class VectorDbService implements OnModuleInit, OnModuleDestroy {
   /**
    * Count total embeddings stored
    */
+  // region COUNT EMBEDDINGS
   async countEmbeddings(): Promise<number> {
     if (!this.isConnected || !this.pool) return 0;
 

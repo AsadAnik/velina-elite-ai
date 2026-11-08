@@ -9,15 +9,16 @@ export class JwtAuthGuard implements CanActivate {
     private readonly prisma: PrismaService,
   ) {}
 
+  /**
+   * Checks if the request has a valid JWT token
+   * @param context The execution context
+   * @returns True if the request has a valid JWT token, false otherwise
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const authorization = request.headers.authorization;
 
-    if (
-      !authorization ||
-      typeof authorization !== 'string' ||
-      !authorization.startsWith('Bearer ')
-    ) {
+    if (!authorization || typeof authorization !== 'string' || !authorization.startsWith('Bearer ')) {
       throw new UnauthorizedException('Missing bearer token');
     }
 
