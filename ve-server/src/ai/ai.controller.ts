@@ -18,8 +18,13 @@ import { ChatRequestDto, HistoryMessageDto } from './dto/chat-request.dto';
 @ApiTags('ai')
 @Controller('ai')
 export class AiController {
-  constructor(private readonly aiService: AiService) {}
+  constructor(private readonly aiService: AiService) { }
 
+  /**
+   * Chat with Velina AI Assistant
+   * @param dto 
+   * @returns 
+   */
   @Post('chat')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -32,6 +37,12 @@ export class AiController {
     return this.aiService.processChat(dto);
   }
 
+  /**
+   * Stream chat response via SSE
+   * @param message 
+   * @param historyRaw 
+   * @returns 
+   */
   @Sse('chat-stream')
   @ApiOperation({
     summary: 'Stream chat response via SSE (Typewriter effect for Mobile & Web)',
@@ -50,10 +61,7 @@ export class AiController {
     required: false,
     description: 'JSON-encoded array of previous conversation messages [{"role":"user"|"assistant","content":"..."}]',
   })
-  chatStream(
-    @Query('message') message: string,
-    @Query('history') historyRaw?: string,
-  ): Observable<MessageEvent> {
+  chatStream(@Query('message') message: string, @Query('history') historyRaw?: string): Observable<MessageEvent> {
     let history: HistoryMessageDto[] = [];
     if (historyRaw) {
       try {

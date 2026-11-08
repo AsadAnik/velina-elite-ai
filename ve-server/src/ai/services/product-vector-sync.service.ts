@@ -44,6 +44,7 @@ export class ProductVectorSyncService implements OnApplicationBootstrap {
   /**
    * Synchronizes all active products from the Primary DB into the Dedicated AI Vector DB
    */
+  // region SYNC ALL PRODUCTS
   async syncAllProducts(): Promise<{ total: number; synced: number }> {
     if (!this.vectorDb.isReady) {
       this.logger.log('Vector DB is not connected yet, skipping initial vector sync.');
@@ -92,6 +93,7 @@ export class ProductVectorSyncService implements OnApplicationBootstrap {
   /**
    * Synchronizes a single product after create/update in the store
    */
+  // region SYNC SINGLE PRODUCT
   async syncSingleProduct(productId: number): Promise<void> {
     try {
       const product = await this.prisma.product.findUnique({

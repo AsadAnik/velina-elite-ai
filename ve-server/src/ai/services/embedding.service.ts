@@ -36,6 +36,7 @@ export class EmbeddingService implements OnModuleInit {
   /**
    * Generates a 384-dimensional vector embedding for a given text query.
    */
+  // region GENERATE EMBEDDING
   async generateEmbedding(text: string): Promise<number[]> {
     const cleanText = text.replace(/\n+/g, ' ').trim();
 
@@ -61,6 +62,7 @@ export class EmbeddingService implements OnModuleInit {
    * Deterministic vector generator producing normalized 384-float vectors
    * based on token n-grams and character hashes as a bulletproof offline fallback.
    */
+  // region DETERMINISTIC VECTOR
   private generateDeterministicVector(text: string, dimensions = 384): number[] {
     const vector = new Array(dimensions).fill(0);
     const tokens = text.toLowerCase().split(/\s+/);
