@@ -11,6 +11,13 @@
   <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
 </p>
 
+<p align="center">
+  <a href="https://velina-elite.onrender.com/api/docs" target="_blank"><strong>📘 Live Swagger API Docs</strong></a> &nbsp;•&nbsp;
+  <a href="https://velina-elite.onrender.com" target="_blank"><strong>🟢 Live Backend Health Check</strong></a> &nbsp;•&nbsp;
+  <a href="#-application-showcase"><strong>📸 App Showcase</strong></a> &nbsp;•&nbsp;
+  <a href="#-architectural-highlight-in-process-vector-rag--ai-flow"><strong>🧠 Vector RAG Flow</strong></a>
+</p>
+
 ---
 
 ## 📌 Executive Summary
@@ -76,9 +83,13 @@ Beyond standard storefronts, Velina Elite features a custom **in-process Vector 
 ### 6. Interactive OpenAPI / Swagger API Documentation
 
 <p align="center">
-  <img src="readme_assets/swagger-api-docs.png" alt="Swagger OpenAPI Documentation" width="100%"/>
+  <a href="https://velina-elite.onrender.com/api/docs" target="_blank">
+    <img src="readme_assets/swagger-api-docs.png" alt="Swagger OpenAPI Documentation" width="100%"/>
+  </a>
   <br>
-  <em>Interactive OpenAPI documentation at <code>/api/docs</code> covering all RESTful &amp; SSE endpoints for Web and Mobile clients (Flutter, React Native)</em>
+  <em>🔗 <strong>Live Swagger API Docs:</strong> <a href="https://velina-elite.onrender.com/api/docs" target="_blank"><code>https://velina-elite.onrender.com/api/docs</code></a> (Interactive RESTful &amp; SSE specs for Web &amp; Mobile)</em>
+  <br>
+  <em>🟢 <strong>Live Backend Health Check:</strong> <a href="https://velina-elite.onrender.com" target="_blank"><code>https://velina-elite.onrender.com</code></a> (Returns 200 OK)</em>
 </p>
 
 ---
@@ -212,6 +223,10 @@ pnpm dev
 ```
 
 Visit **`http://localhost:3000`** in your browser to experience Velina Elite, and test the AI Assistant in the bottom right corner!
+
+### 🌐 Live Cloud Deployment
+- **Live Swagger API Docs**: [`https://velina-elite.onrender.com/api/docs`](https://velina-elite.onrender.com/api/docs)
+- **Live Backend Base URL / Health Check**: [`https://velina-elite.onrender.com`](https://velina-elite.onrender.com)
 
 ---
 
