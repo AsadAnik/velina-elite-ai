@@ -13,18 +13,32 @@ export class EmbeddingService implements OnModuleInit {
   /**
    * Initializes local in-process embedding pipeline using HuggingFace Xenova.
    * Runs all-MiniLM-L6-v2 in server RAM (384 dimensions).
+   * 
+   * We use `@xenova/transformers`, an open-source library that runs real Hugging Face models
+   * inside Node.js process using WebAssembly and ONNX Runtime.
+   * 
+   * Xenova/all-MiniLM-L6-v2 is a small, fast, and effective embedding model. 
+   * It is only ~23 MB in size, but it is trained on over 1 billion sentence pairs to understand deep semantic meaning.
+   * It outputs exactly 384 dimensions (coordinates), which matches our vector(384) in PostgreSQL.
    */
   async initLocalModel() {
     try {
       this.logger.log('Loading local embedding model (Xenova/all-MiniLM-L6-v2)...');
-      // Dynamic import ensures compatibility and non-blocking startup
+      // Dynamic import of Hugging Face Library ensures compatibility and non-blocking startup
       // @ts-ignore
       const { pipeline, env } = await import('@xenova/transformers');
       env.allowLocalModels = false;
 
+      /**
+       * Download and load the neural network into server RAM
+       * In Hugging Face terminology, 
+       * `feature-extraction` means: "Don't generate new words (like ChatGPT does); 
+       * instead, extract the numerical meaning (the vector features) of the words."
+       */
       this.extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
       this.isLocalModelReady = true;
       this.logger.log('Local embedding model initialized successfully (384 dimensions).');
+
     } catch (error) {
       this.isLocalModelReady = false;
       this.logger.warn(

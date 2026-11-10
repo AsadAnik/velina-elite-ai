@@ -1,3 +1,4 @@
+// #region Generator & Datasource
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl", "darwin-arm64"]
@@ -7,6 +8,9 @@ datasource db {
   provider = "postgresql"
 }
 
+// #endregion
+
+// #region User
 model User {
   id         Int       @id @default(autoincrement())
   email      String    @unique
@@ -18,6 +22,9 @@ model User {
   customer   Customer?
 }
 
+// #endregion
+
+// #region Customer
 model Customer {
   id         Int        @id @default(autoincrement())
   user_id    Int        @unique
@@ -35,6 +42,9 @@ model Customer {
   ratings    Rating[]
 }
 
+// #endregion
+
+// #region Address
 model Address {
   id          Int      @id @default(autoincrement())
   customer_id Int
@@ -50,6 +60,9 @@ model Address {
   orders      Order[]
 }
 
+// #endregion
+
+// #region Category
 model Category {
   id             Int           @id @default(autoincrement())
   name           String
@@ -59,6 +72,9 @@ model Category {
   sub_categories SubCategory[]
 }
 
+// #endregion
+
+// #region SubCategory
 model SubCategory {
   id          Int       @id @default(autoincrement())
   name        String
@@ -69,34 +85,40 @@ model SubCategory {
   category    Category  @relation(fields: [category_id], references: [id])
 }
 
+// #endregion
+
+// #region Product
 model Product {
-  id              Int              @id @default(autoincrement())
-  title           String
-  description     String
-  price           Decimal          @default(0)
-  stock_quantity  Int              @default(0)
-  images_url      String[]
-  status          ProductStatus    @default(draft)
-  category_id     Int
-  sub_category_id Int
-  created_at      DateTime         @default(now())
-  updated_at      DateTime         @updatedAt
-  currency_symbol String           @default("৳")
-  mrp_price       Decimal          @default(0) @db.Decimal(10, 2)
-  regular_price   Decimal          @default(0) @db.Decimal(10, 2)
-  save_amount     Decimal          @default(0) @db.Decimal(10, 2)
-  save_percentage Int              @default(0)
-  size            Decimal?         @db.Decimal(10, 2)
-  size_unit       ProductSizeUnit?
-  carts           Cart[]
-  orderItems      OrderItem[]
-  category        Category         @relation(fields: [category_id], references: [id])
-  sub_category    SubCategory      @relation(fields: [sub_category_id], references: [id])
-  wishlists       Wishlist[]
-  ratings         Rating[]
+  id                 Int               @id @default(autoincrement())
+  title              String
+  description        String
+  price              Decimal           @default(0)
+  stock_quantity     Int               @default(0)
+  images_url         String[]
+  status             ProductStatus     @default(draft)
+  category_id        Int
+  sub_category_id    Int
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
+  currency_symbol    String            @default("৳")
+  mrp_price          Decimal           @default(0) @db.Decimal(10, 2)
+  regular_price      Decimal           @default(0) @db.Decimal(10, 2)
+  save_amount        Decimal           @default(0) @db.Decimal(10, 2)
+  save_percentage    Int               @default(0)
+  size               Decimal?          @db.Decimal(10, 2)
+  size_unit          ProductSizeUnit?
+  carts              Cart[]
+  orderItems         OrderItem[]
+  category           Category          @relation(fields: [category_id], references: [id])
+  sub_category       SubCategory       @relation(fields: [sub_category_id], references: [id])
+  wishlists          Wishlist[]
+  ratings            Rating[]
   home_section_items HomeSectionItem[]
 }
 
+// #endregion
+
+// #region Wishlist
 model Wishlist {
   id          Int      @id @default(autoincrement())
   product_id  Int
@@ -108,6 +130,9 @@ model Wishlist {
   @@unique([customer_id, product_id])
 }
 
+// #endregion
+
+// #region Cart
 model Cart {
   id          Int      @id @default(autoincrement())
   customer_id Int
@@ -121,6 +146,9 @@ model Cart {
   @@unique([customer_id, product_id])
 }
 
+// #endregion
+
+// #region Order
 model Order {
   id                  Int            @id @default(autoincrement())
   customer_id         Int
@@ -137,6 +165,9 @@ model Order {
   order_items         OrderItem[]
 }
 
+// #endregion
+
+// #region OrderItem
 model OrderItem {
   id         Int      @id @default(autoincrement())
   order_id   Int
@@ -148,6 +179,9 @@ model OrderItem {
   product    Product  @relation(fields: [product_id], references: [id])
 }
 
+// #endregion
+
+// #region OrderHistory
 model OrderHistory {
   id         Int         @id @default(autoincrement())
   order_id   Int
@@ -157,6 +191,9 @@ model OrderHistory {
   order      Order       @relation(fields: [order_id], references: [id])
 }
 
+// #endregion
+
+// #region Rating
 model Rating {
   id          Int      @id @default(autoincrement())
   customer_id Int
@@ -171,6 +208,9 @@ model Rating {
   @@unique([customer_id, product_id])
 }
 
+// #endregion
+
+// #region ShippingCost
 model ShippingCost {
   id                 Int      @id @default(autoincrement())
   inside_dhaka_cost  Decimal  @db.Decimal(10, 2)
@@ -180,6 +220,9 @@ model ShippingCost {
   updated_at         DateTime @updatedAt
 }
 
+// #endregion
+
+// #region HomeSection
 model HomeSection {
   id           Int               @id @default(autoincrement())
   title        String
@@ -203,6 +246,9 @@ model HomeSection {
   items        HomeSectionItem[]
 }
 
+// #endregion
+
+// #region HomeSectionItem
 model HomeSectionItem {
   id          Int         @id @default(autoincrement())
   section_id  Int
@@ -225,6 +271,24 @@ model HomeSectionItem {
   product     Product?    @relation(fields: [product_id], references: [id], onDelete: SetNull)
 }
 
+// #endregion
+
+// #region SiteSetting
+model SiteSetting {
+  id                 Int      @id @default(autoincrement())
+  site_name          String   @default("Velina Elite")
+  site_logo          String?  @default("/1776256116755-removebg-preview.png")
+  whatsapp_number    String   @default("8801347375533")
+  whatsapp_message   String?  @default("Hello! I have a question about Velina Elite.")
+  is_whatsapp_active Boolean  @default(true)
+  is_ai_active       Boolean  @default(true)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+}
+
+// #endregion
+
+// #region Enums
 enum Role {
   customer
   admin
@@ -258,15 +322,4 @@ enum PaymentMethod {
   cod
 }
 
-model SiteSetting {
-  id                 Int      @id @default(autoincrement())
-  site_name          String   @default("Velina Elite")
-  site_logo          String?  @default("/1776256116755-removebg-preview.png")
-  whatsapp_number    String   @default("8801347375533")
-  whatsapp_message   String?  @default("Hello! I have a question about Velina Elite.")
-  is_whatsapp_active Boolean  @default(true)
-  is_ai_active       Boolean  @default(true)
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
-}
-
+// #endregion
