@@ -1,20 +1,29 @@
 # Velina Elite | E-Commerce & Autonomous AI Shopping Consultant
 
 <p align="center">
+  <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/NestJS-11.0-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" />
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Prisma-7.8-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" />
+  <img src="https://img.shields.io/badge/Redis-Stack-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" />
   <img src="https://img.shields.io/badge/Next.js-16.2_(Turbopack)-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-19.2-blue?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
-  <img src="https://img.shields.io/badge/NestJS-11.0-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" />
-  <img src="https://img.shields.io/badge/Prisma-7.8-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" />
-  <img src="https://img.shields.io/badge/PostgreSQL-16_(pgvector)-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
-  <img src="https://img.shields.io/badge/Redis-Stack-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" />
-  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/pgvector-Cosine_HNSW-2E7D32?style=for-the-badge&logo=postgresql&logoColor=white" alt="pgvector" />
+  <img src="https://img.shields.io/badge/Vector_RAG-In--Process-FF6F00?style=for-the-badge&logo=openai&logoColor=white" alt="Vector RAG" />
+  <img src="https://img.shields.io/badge/HuggingFace-Transformers-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face" />
 </p>
 
 <p align="center">
+  <a href="https://velina-elite-bd.vercel.app" target="_blank"><strong>🌐 Live Storefront</strong></a> &nbsp;•&nbsp;
+  <a href="https://velina-elite-bd.vercel.app/admin" target="_blank"><strong>🛡️ Live Admin Portal</strong></a> &nbsp;•&nbsp;
   <a href="https://velina-elite.onrender.com/api/docs" target="_blank"><strong>📘 Live Swagger API Docs</strong></a> &nbsp;•&nbsp;
-  <a href="https://velina-elite.onrender.com" target="_blank"><strong>🟢 Live Backend Health Check</strong></a> &nbsp;•&nbsp;
+  <a href="https://velina-elite.onrender.com" target="_blank"><strong>🟢 Backend Health Check</strong></a>
+</p>
+
+<p align="center">
   <a href="#-application-showcase"><strong>📸 App Showcase</strong></a> &nbsp;•&nbsp;
+  <a href="#7-database-entity-relationship-diagram-erd"><strong>🗄️ Database ERD</strong></a> &nbsp;•&nbsp;
   <a href="#-architectural-highlight-in-process-vector-rag--ai-flow"><strong>🧠 Vector RAG Flow</strong></a>
 </p>
 
@@ -148,12 +157,13 @@ Velina Elite solves this by decoupling semantic search into an **In-Process Vect
 
 | Domain | Technologies |
 |:---|:---|
+| **Core Language** | TypeScript 5.0 (Strict Mode across Client & Server) |
+| **Backend API** | NestJS 11, RxJS (Observables & SSE), Prisma 7.8, Swagger OpenAPI, class-validator |
+| **Databases & ORM**| PostgreSQL 16 (Neon Cloud / Local Docker), Prisma ORM 7.8 (PgAdapter) |
+| **Caching & In-Memory** | Redis Stack (Caching, Session Store & Rate-limiting) |
 | **Frontend Web** | Next.js 16 (Turbopack, App Router), React 19, Tailwind CSS v4, Lucide Icons, Sonner |
-| **Backend API** | NestJS 11, TypeScript, RxJS, Prisma 7, Swagger OpenAPI, class-validator |
-| **AI / ML & Vector** | `@xenova/transformers` (`all-MiniLM-L6-v2`), `pgvector:pg16`, HNSW Cosine Indexing, Pollinations AI |
-| **Databases & Cache**| PostgreSQL 16 (Neon Cloud / Local Docker), Redis Stack (caching & rate-limiting) |
-| **Storage & Assets** | Cloudinary CDN (Image Transformations & Uploads), Curated Unsplash CDN |
-| **DevOps & Tooling** | Docker, Docker Compose, `pnpm`, Render Web Services |
+| **AI / ML & Vector** | In-Process Vector RAG, `@xenova/transformers` (`all-MiniLM-L6-v2`), `pgvector:pg16`, HNSW Cosine Indexing, Pollinations AI |
+| **Cloud, DevOps & CDN** | Docker, Docker Compose, Render Cloud Services, Cloudinary CDN, `pnpm` |
 
 ---
 
@@ -225,7 +235,9 @@ pnpm dev
 Visit **`http://localhost:3000`** in your browser to experience Velina Elite, and test the AI Assistant in the bottom right corner!
 
 ### 🌐 Live Cloud Deployment
-- **Live Swagger API Docs**: [`https://velina-elite.onrender.com/api/docs`](https://velina-elite.onrender.com/api/docs)
+- **Live Storefront (Next.js 16 on Vercel)**: [`https://velina-elite-bd.vercel.app`](https://velina-elite-bd.vercel.app)
+- **Live Admin Portal**: [`https://velina-elite-bd.vercel.app/admin`](https://velina-elite-bd.vercel.app/admin)
+- **Live Swagger API Docs (NestJS on Render)**: [`https://velina-elite.onrender.com/api/docs`](https://velina-elite.onrender.com/api/docs)
 - **Live Backend Base URL / Health Check**: [`https://velina-elite.onrender.com`](https://velina-elite.onrender.com)
 
 ---
