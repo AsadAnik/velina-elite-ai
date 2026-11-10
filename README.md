@@ -1,4 +1,4 @@
-# 🌸 Velina Elite — Luxury Beauty E-Commerce & Autonomous AI Shopping Consultant
+# Velina Elite | E-Commerce & Autonomous AI Shopping Consultant
 
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-16.2_(Turbopack)-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
