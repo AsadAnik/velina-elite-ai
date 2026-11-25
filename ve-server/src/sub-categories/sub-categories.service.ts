@@ -4,12 +4,12 @@ import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 
 @Injectable()
 export class SubCategoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * Create Sub Category Service
-   * @param dto
-   * @returns
+   * @param dto createSubCategoryDto
+   * @returns Object
    */
   // region Create Sub Category
   async createSubCategory(dto: CreateSubCategoryDto) {
@@ -36,7 +36,7 @@ export class SubCategoriesService {
   /**
    * Delete Sub Category Service
    * @param id category_id
-   * @returns
+   * @returns Object
    */
   // region Delete Sub Category
   async deleteSubCategory(id: number) {
@@ -67,8 +67,7 @@ export class SubCategoriesService {
 
   /**
    * Find All Sub Category Service
-   * @param dto
-   * @returns
+   * @returns Object
    */
   // region Find All Sub Category
   async findAllSubCategories() {

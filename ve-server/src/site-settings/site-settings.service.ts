@@ -13,8 +13,13 @@ const DEFAULT_SETTINGS = {
 
 @Injectable()
 export class SiteSettingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
+  /**
+   * Get Site Settings
+   * @returns Object
+   */
+  // region GET SETTINGS
   async getSettings() {
     try {
       let settings = await this.prisma.siteSetting.findFirst();
@@ -46,6 +51,12 @@ export class SiteSettingsService {
     }
   }
 
+  /**
+   * Update Site Settings
+   * @param dto UpdateSiteSettingDto
+   * @returns Object
+   */
+  // region UPDATE SETTINGS
   async updateSettings(dto: UpdateSiteSettingDto) {
     try {
       const existing = await this.prisma.siteSetting.findFirst();

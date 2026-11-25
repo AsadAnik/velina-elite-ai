@@ -14,12 +14,20 @@ import { DashboardService } from './dashboard.service';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
+  /**
+   * Get admin dashboard stats and metrics
+   * @returns Dashboard stats
+   */
   @Get('stats')
   @ApiOperation({ summary: 'Get admin dashboard stats and metrics' })
   getDashboardStats() {
     return this.dashboardService.getDashboardStats();
   }
 
+  /**
+   * Get admin dashboard stats
+   * @returns Dashboard stats
+   */
   @Get()
   @ApiOperation({ summary: 'Get admin dashboard stats' })
   getDashboardStatsRoot() {

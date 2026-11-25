@@ -5,7 +5,7 @@ import { UpdateShippingCostDto } from './dto/update-shipping-cost.dto';
 
 @Injectable()
 export class ShippingCostsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * CREATE OR UPDATE SHIPPING COST SERVICE
@@ -13,9 +13,10 @@ export class ShippingCostsService {
    * @param dto createShippingCostDto
    * @returns Object
    */
+  // region CREATE SHIPPING COST
   async createShippingCost(dto: CreateShippingCostDto) {
     const existingConfig = await this.prisma.shippingCost.findFirst();
-    
+
     if (existingConfig) {
       throw new BadRequestException('Shipping cost configuration already exists. Use update instead.');
     }
@@ -33,9 +34,10 @@ export class ShippingCostsService {
    * GET SHIPPING COST CONFIGURATION
    * @returns Object
    */
+  // region GET SHIPPING COST
   async getShippingCost() {
     const config = await this.prisma.shippingCost.findFirst();
-    
+
     if (!config) {
       // Return default values if no configuration exists
       return {
@@ -47,7 +49,7 @@ export class ShippingCostsService {
         updated_at: null,
       };
     }
-    
+
     return config;
   }
 
@@ -57,6 +59,7 @@ export class ShippingCostsService {
    * @param dto updateShippingCostDto
    * @returns Object
    */
+  // region UPDATE SHIPPING COST
   async updateShippingCost(id: number, dto: UpdateShippingCostDto) {
     const existingConfig = await this.prisma.shippingCost.findUnique({
       where: { id },
@@ -81,6 +84,7 @@ export class ShippingCostsService {
    * @param id shipping_cost_id
    * @returns Object
    */
+  // region DELETE SHIPPING COST
   async deleteShippingCost(id: number) {
     const existingConfig = await this.prisma.shippingCost.findUnique({
       where: { id },

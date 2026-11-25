@@ -250,6 +250,8 @@ For deep technical studies, architectural diagrams, and protocol walkthroughs, r
 - 📙 [`docs/sse-streaming-guide.md`](docs/sse-streaming-guide.md) — Technical spec on Server-Sent Events, buffer controls, and mobile client consumption (Flutter, React Native).
 - 📕 [`docs/vector-rag-implementation-plan.md`](docs/vector-rag-implementation-plan.md) — Architectural design document for dual-database zero-blast-radius deployment.
 - 📗 [`docs/ai-feature-limitations.md`](docs/ai-feature-limitations.md) — Analysis of relational SQL vs. vector semantic search benchmarks.
+- 📕 [`docs/REDIS_CACHING.md`](docs/REDIS_CACHING.md) — Full Redis caching system documentation for product catalogue.
+- 🧪 [`docs/backend-testing-guide.md`](docs/backend-testing-guide.md) — Comprehensive guide to backend unit & integration testing (`Jest`, `Supertest`, RBAC & Prisma mocking).
 
 ---
 

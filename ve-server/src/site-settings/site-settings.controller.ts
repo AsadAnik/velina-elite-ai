@@ -23,17 +23,24 @@ import { Role } from '@prisma/client';
 @ApiTags('site-settings')
 @Controller('site-settings')
 export class SiteSettingsController {
-  constructor(
-    private readonly siteSettingsService: SiteSettingsService,
-    private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  constructor(private readonly siteSettingsService: SiteSettingsService, private readonly cloudinaryService: CloudinaryService) {}
 
+  /**
+   * GET SITE SETTINGS
+   * @returns Object
+   */
   @Get()
   @ApiOperation({ summary: 'Get Site Settings (Public)' })
   getSettings() {
     return this.siteSettingsService.getSettings();
   }
 
+  /**
+   * UPDATE SITE SETTINGS
+   * @param dto UpdateSiteSettingDto
+   * @param file UploadedFile
+   * @returns Object
+   */
   @Put()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -59,6 +66,12 @@ export class SiteSettingsController {
     return this.siteSettingsService.updateSettings(dto);
   }
 
+  /**
+   * UPDATE SITE SETTINGS
+   * @param dto UpdateSiteSettingDto
+   * @param file UploadedFile
+   * @returns Object
+   */
   @Patch()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)

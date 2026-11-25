@@ -24,8 +24,13 @@ import { Role } from '@prisma/client';
 @ApiBearerAuth()
 @Controller('shipping-costs')
 export class ShippingCostsController {
-  constructor(private readonly shippingCostsService: ShippingCostsService) {}
+  constructor(private readonly shippingCostsService: ShippingCostsService) { }
 
+  /**
+   * CREATE SHIPPING COST CONFIGURATION
+   * @param dto createShippingCostDto
+   * @returns Object
+   */
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -41,12 +46,22 @@ export class ShippingCostsController {
     return this.shippingCostsService.createShippingCost(dto);
   }
 
+  /**
+   * GET SHIPPING COST CONFIGURATION
+   * @returns Object
+   */
   @Get()
   @ApiOperation({ summary: 'Get Shipping Cost Configuration' })
   getShippingCost() {
     return this.shippingCostsService.getShippingCost();
   }
 
+  /**
+   * UPDATE SHIPPING COST CONFIGURATION
+   * @param id shipping_cost_id
+   * @param dto updateShippingCostDto
+   * @returns Object
+   */
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -62,6 +77,11 @@ export class ShippingCostsController {
     return this.shippingCostsService.updateShippingCost(id, dto);
   }
 
+  /**
+   * DELETE SHIPPING COST CONFIGURATION
+   * @param id shipping_cost_id
+   * @returns Object
+   */
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)

@@ -24,13 +24,10 @@ export class ProductVectorSyncService implements OnApplicationBootstrap {
 
   /**
    * Generates a descriptive text chunk for embedding calculation
+   * @param product 
+   * @returns 
    */
-  buildProductSearchText(product: {
-    title: string;
-    description?: string | null;
-    category?: { name: string } | null;
-    sub_category?: { name: string } | null;
-  }): string {
+  buildProductSearchText(product: { title: string; description?: string | null; category?: { name: string } | null; sub_category?: { name: string } | null; }): string {
     const parts = [
       `Product: ${product.title}`,
       product.category?.name ? `Category: ${product.category.name}` : '',

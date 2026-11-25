@@ -11,8 +11,14 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 @ApiTags('ratings')
 @Controller()
 export class RatingsController {
-  constructor(private readonly ratingsService: RatingsService) {}
+  constructor(private readonly ratingsService: RatingsService) { }
 
+  /**
+   * Create a rating (Customer only)
+   * @param req - Authenticated user from request
+   * @param createRatingDto - Rating data to create
+   * @returns Created rating object
+   */
   @Post('ratings')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.customer)
@@ -22,12 +28,21 @@ export class RatingsController {
     return this.ratingsService.create(req.user.sub, createRatingDto);
   }
 
+  /**
+   * Get all ratings for a specific product
+   * @param productId ID of the product
+   * @returns All ratings for the specific product
+   */
   @Get('products/:productId/ratings')
   @ApiOperation({ summary: 'Get all ratings for a specific product' })
   findAllForProduct(@Param('productId', ParseIntPipe) productId: number) {
     return this.ratingsService.findAllForProduct(productId);
   }
 
+  /**
+   * Get all ratings (Admin only)
+   * @returns All ratings
+   */
   @Get('admin/ratings')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -37,6 +52,12 @@ export class RatingsController {
     return this.ratingsService.findAll();
   }
 
+  /**
+   * Update a rating (Admin only)
+   * @param id - ID of the rating to update
+   * @param updateRatingDto - Updated rating data
+   * @returns Updated rating object
+   */
   @Put('admin/ratings/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -46,6 +67,11 @@ export class RatingsController {
     return this.ratingsService.update(id, updateRatingDto);
   }
 
+  /**
+   * Delete a rating (Admin only)
+   * @param id - ID of the rating to delete
+   * @returns Confirmation of deletion
+   */
   @Delete('admin/ratings/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)
@@ -55,6 +81,10 @@ export class RatingsController {
     return this.ratingsService.remove(id);
   }
 
+  /**
+   * Seed realistic ratings (8-10 ratings per product, 4.5 - 5 stars) (Admin only)
+   * @returns Confirmation of seeding
+   */
   @Post('admin/ratings/seed')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.admin, Role.owner)

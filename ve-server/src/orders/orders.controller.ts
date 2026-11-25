@@ -25,7 +25,7 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(private readonly ordersService: OrdersService) { }
 
   /**
    * CREATE ORDER

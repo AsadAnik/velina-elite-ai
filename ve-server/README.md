@@ -19,6 +19,7 @@
 - [Production Deployment](#production-deployment)
 - [Database Backup](#database-backup)
 - [API Documentation](#api-documentation)
+- [Redis Caching](#redis-caching)
 - [Project Structure](#project-structure)
 
 ---
@@ -34,6 +35,7 @@
 - **Shipping cost** configuration (inside / outside Dhaka)
 - Auto-generated **Swagger / OpenAPI** interactive documentation
 - **Dockerised** development with hot-reload
+- **Redis caching** for high-performance product catalogue queries
 - **Multi-stage Docker build** for lean, optimised production images
 - Automated **PostgreSQL backups** from the Neon production database
 
@@ -51,6 +53,7 @@
 | Database — Production | Neon (serverless PostgreSQL) |
 | Authentication | JWT (`@nestjs/jwt`) |
 | Image Storage | Cloudinary |
+| Caching | Redis Stack + `cache-manager` |
 | Validation | `class-validator` + `class-transformer` |
 | API Docs | Swagger / OpenAPI (`@nestjs/swagger`) |
 | Containerisation | Docker + Docker Compose |
@@ -170,6 +173,10 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 # App
 PORT=3000
+
+# Redis (optional — falls back to in-memory cache if not set)
+REDIS_HOST=redis
+REDIS_PORT=6379
 ```
 
 > ⚠️ Never commit `.env.*` files. Both are listed in `.gitignore`.
@@ -342,6 +349,21 @@ Includes:
 
 ---
 
+## Redis Caching
+
+The backend uses **Redis Stack** as a high-performance caching layer for the product catalogue. All product read endpoints (`findAll`, `findOne`, `findRelated`, `search`) implement the **cache-aside pattern** — checking Redis first and only querying PostgreSQL on a cache miss.
+
+| Feature | Detail |
+|---|---|
+| Cache Store | Redis Stack (Docker) with in-memory fallback |
+| Pattern | Cache-Aside (Lazy Loading) |
+| Invalidation | Automatic on create / update / delete |
+| Web UI | Redis Insight at `http://localhost:8001` |
+
+> 📖 **Full documentation:** [`docs/REDIS_CACHING.md`](./docs/REDIS_CACHING.md) — architecture, cache key strategy, TTL guidelines, invalidation logic, extending to other modules, and troubleshooting.
+
+---
+
 ## Project Structure
 
 ```
@@ -358,6 +380,7 @@ ve-server/
 │   ├── addresses/          # Customer address book
 │   ├── shipping-costs/     # Delivery fee configuration
 │   ├── cloudinary/         # Cloudinary service wrapper
+│   ├── redis/              # Global Redis cache module (cache-manager + fallback)
 │   ├── prisma/             # PrismaService (singleton client)
 │   ├── app.module.ts       # Root module
 │   └── main.ts             # Bootstrap — Swagger, CORS, validation, port
@@ -365,6 +388,8 @@ ve-server/
 │   ├── schema.prisma       # All models, enums, relations
 │   └── migrations/         # Migration history (committed)
 ├── backups/                # pg_dump output — git-ignored
+├── docs/
+│   └── REDIS_CACHING.md   # Full Redis caching documentation
 ├── Dockerfile              # Multi-stage build (builder → production)
 ├── docker-compose.yaml     # Local dev stack (app + PostgreSQL 16)
 ├── docker-compose.prod.yaml# Production compose config

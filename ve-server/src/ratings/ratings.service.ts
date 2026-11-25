@@ -6,8 +6,15 @@ import { OrderStatus, Role } from '@prisma/client';
 
 @Injectable()
 export class RatingsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
+  /**
+   * Create a new rating
+   * @param user_id foriegn key reference from user model, unique identifier for user
+   * @param createRatingDto updated rating data
+   * @returns 
+   */
+  // region CREATE RATING
   async create(user_id: number, createRatingDto: CreateRatingDto) {
     const { product_id, stars, comment } = createRatingDto;
 
@@ -56,6 +63,12 @@ export class RatingsService {
     });
   }
 
+  /**
+   * Find all ratings for a product
+   * @param productId unique identifier for product
+   * @returns array of ratings
+   */
+  // region FIND ALL RATINGS
   async findAllForProduct(productId: number) {
     const ratings = await this.prisma.rating.findMany({
       where: { product_id: productId },
@@ -71,8 +84,8 @@ export class RatingsService {
       orderBy: { created_at: 'desc' },
     });
 
-    const averageRating = ratings.length > 0 
-      ? ratings.reduce((acc, curr) => acc + curr.stars, 0) / ratings.length 
+    const averageRating = ratings.length > 0
+      ? ratings.reduce((acc, curr) => acc + curr.stars, 0) / ratings.length
       : 0;
 
     return {
@@ -82,6 +95,11 @@ export class RatingsService {
     };
   }
 
+  /**
+   * Find all ratings
+   * @returns array of ratings
+   */
+  // region FIND ALL RATINGS
   async findAll() {
     return this.prisma.rating.findMany({
       include: {
@@ -96,6 +114,13 @@ export class RatingsService {
     });
   }
 
+  /**
+   * Update a rating
+   * @param id unique identifier for rating 
+   * @param updateRatingDto updated rating data
+   * @returns updated rating
+   */
+  // region UPDATE RATINGS
   async update(id: number, updateRatingDto: UpdateRatingDto) {
     return this.prisma.rating.update({
       where: { id },
@@ -103,12 +128,23 @@ export class RatingsService {
     });
   }
 
+  /**
+   * Delete a rating
+   * @param id unique identifier for rating 
+   * @returns removed rating
+   */
+  // region DELETE RATINGS
   async remove(id: number) {
     return this.prisma.rating.delete({
       where: { id },
     });
   }
 
+  /**
+   * Seed ratings
+   * @returns seed ratings
+   */
+  // region SEED RATINGS
   async seedRatings() {
     const sampleCustomers = [
       { fname: 'Nusrat', lname: 'Jahan', email: 'nusrat.jahan@gmail.com', username: 'nusrat-jahan' },

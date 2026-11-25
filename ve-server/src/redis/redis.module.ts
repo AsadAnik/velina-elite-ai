@@ -21,6 +21,7 @@ import { redisStore } from 'cache-manager-redis-yet';
                         });
                         logger.log('Connected to Redis via REDIS_URL successfully.');
                         return { store };
+
                     } else if (redisHost) {
                         logger.log(`Connecting to Redis via ${redisHost}:${redisPort}...`);
                         const store = await redisStore({
@@ -32,10 +33,12 @@ import { redisStore } from 'cache-manager-redis-yet';
                         });
                         logger.log('Connected to Redis successfully.');
                         return { store };
+
                     } else {
                         logger.warn('No REDIS_URL or REDIS_HOST configured. Using in-memory cache fallback.');
                         return { ttl: 60 * 1000 };
                     }
+
                 } catch (error: any) {
                     logger.error(`Redis connection error (${error?.message || error}). Falling back to in-memory cache.`);
                     return { ttl: 60 * 1000 };
@@ -45,5 +48,5 @@ import { redisStore } from 'cache-manager-redis-yet';
     ],
     exports: [CacheModule],
 })
-export class RedisModule {}
+export class RedisModule { }
 

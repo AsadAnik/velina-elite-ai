@@ -16,11 +16,13 @@ export class HomeSectionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  ) { }
 
   /**
-   * Get public active sections with active items for storefront home page
+   * Get all public active sections with active items for storefront home page
+   * @returns Array of public active sections with active items
    */
+  // region GET PUBLIC SECTIONS
   async getPublicSections() {
     const sections = await this.prisma.homeSection.findMany({
       where: { is_active: true },
@@ -59,7 +61,9 @@ export class HomeSectionsService {
 
   /**
    * Get all sections for admin dashboard
+   * @returns Array of all sections
    */
+  // region GET ALL SECTIONS
   async getAllSections() {
     return this.prisma.homeSection.findMany({
       orderBy: { order_index: 'asc' },
@@ -86,8 +90,11 @@ export class HomeSectionsService {
   }
 
   /**
-   * Get single section by ID
+   * Get home section by ID
+   * @param id Section ID
+   * @returns Home section object
    */
+  // region GET SECTION BY ID
   async getSectionById(id: number) {
     const section = await this.prisma.homeSection.findUnique({
       where: { id },
@@ -120,8 +127,11 @@ export class HomeSectionsService {
   }
 
   /**
-   * Create a new home section
+   * Create home section
+   * @param dto Home section data
+   * @returns Created home section object
    */
+  // region CREATE SECTION
   async createSection(dto: CreateHomeSectionDto) {
     let orderIndex = dto.order_index;
     if (orderIndex === undefined || orderIndex === null) {
@@ -158,7 +168,11 @@ export class HomeSectionsService {
 
   /**
    * Update home section
+   * @param id Section ID
+   * @param dto Home section data
+   * @returns Updated home section object
    */
+  // region UPDATE SECTION
   async updateSection(id: number, dto: UpdateHomeSectionDto) {
     await this.getSectionById(id);
 
@@ -192,8 +206,11 @@ export class HomeSectionsService {
   }
 
   /**
-   * Reorder sections (batch update order_index)
+   * Reorder home sections
+   * @param items Array of section IDs and their new order indexes
+   * @returns Updated array of home sections
    */
+  // region REORDER SECTIONS
   async reorderSections(items: ReorderItemDto[]) {
     if (!items || items.length === 0) {
       throw new BadRequestException('Items array is required');
@@ -213,7 +230,10 @@ export class HomeSectionsService {
 
   /**
    * Delete home section
+   * @param id Section ID
+   * @returns Deleted home section object
    */
+  // region DELETE SECTION
   async deleteSection(id: number) {
     const section = await this.getSectionById(id);
 
@@ -236,8 +256,12 @@ export class HomeSectionsService {
   }
 
   /**
-   * Add item to a section
+   * Add item to home section
+   * @param sectionId Section ID
+   * @param dto Item data
+   * @returns Created item object
    */
+  // region ADD ITEM
   async addItem(sectionId: number, dto: CreateHomeSectionItemDto) {
     await this.getSectionById(sectionId);
 
@@ -274,8 +298,12 @@ export class HomeSectionsService {
   }
 
   /**
-   * Update item
+   * Update home section item
+   * @param itemId Item ID
+   * @param dto Item data
+   * @returns Updated item object
    */
+  // region UPDATE ITEM
   async updateItem(itemId: number, dto: UpdateHomeSectionItemDto) {
     const item = await this.prisma.homeSectionItem.findUnique({
       where: { id: itemId },
@@ -308,8 +336,12 @@ export class HomeSectionsService {
   }
 
   /**
-   * Reorder items inside a section
+   * Reorder home section items
+   * @param sectionId Section ID
+   * @param items Array of item IDs and their new order indexes
+   * @returns Updated array of home section items
    */
+  // region REORDER ITEMS
   async reorderItems(sectionId: number, items: ReorderItemDto[]) {
     if (!items || items.length === 0) {
       throw new BadRequestException('Items array is required');
@@ -328,8 +360,11 @@ export class HomeSectionsService {
   }
 
   /**
-   * Delete item
+   * Delete home section item
+   * @param itemId Item ID
+   * @returns Deleted item object
    */
+  // region DELETE ITEM
   async deleteItem(itemId: number) {
     const item = await this.prisma.homeSectionItem.findUnique({
       where: { id: itemId },

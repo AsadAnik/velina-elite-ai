@@ -5,8 +5,14 @@ import { UpdateAddressDto } from './dto/update-address.dto';
 
 @Injectable()
 export class AddressesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
+  /**
+   * Summary: Retrieves all addresses for a specific customer.
+   * @param customerId - The ID of the customer whose addresses are to be retrieved.
+   * @returns An array of addresses belonging to the specified customer.
+   */
+  // region GET ADDRESS
   async getUserAddresses(customerId: number) {
     if (!customerId) return [];
     const addresses = await this.prisma.address.findMany({
@@ -17,6 +23,13 @@ export class AddressesService {
     return addresses;
   }
 
+  /**
+   * Summary: Creates a new address for a specific customer.
+   * @param customerId - The ID of the customer to create the address for.
+   * @param createAddressDto - The data for the new address.
+   * @returns The created address.
+   */
+  // region CREATE ADDRESS
   async createAddress(customerId: number, createAddressDto: CreateAddressDto) {
     const { is_default, ...addressData } = createAddressDto;
 
@@ -39,11 +52,15 @@ export class AddressesService {
     return address;
   }
 
-  async updateAddress(
-    customerId: number,
-    addressId: number,
-    updateAddressDto: UpdateAddressDto,
-  ) {
+  /**
+   * Summary: Updates an existing address for a specific customer.
+   * @param customerId - The ID of the customer who owns the address.
+   * @param addressId - The ID of the address to update.
+   * @param updateAddressDto - The data for updating the address.
+   * @returns The updated address.
+   */
+  // region UPDATE ADDRESS
+  async updateAddress(customerId: number, addressId: number, updateAddressDto: UpdateAddressDto) {
     // Check if address exists and belongs to customer
     const existingAddress = await this.prisma.address.findUnique({
       where: { id: addressId },
@@ -78,6 +95,13 @@ export class AddressesService {
     return updatedAddress;
   }
 
+  /**
+   * Summary: Deletes an existing address for a specific customer.
+   * @param customerId - The ID of the customer who owns the address.
+   * @param addressId - The ID of the address to delete.
+   * @returns A success message if the address was deleted successfully.
+   */
+  // region DELETE ADDRESS
   async deleteAddress(customerId: number, addressId: number) {
     // Check if address exists and belongs to customer
     const existingAddress = await this.prisma.address.findUnique({
@@ -108,6 +132,13 @@ export class AddressesService {
     return { message: 'Address deleted successfully' };
   }
 
+  /**
+   * Summary: Sets a specific address as the default address for a customer.
+   * @param customerId - The ID of the customer who owns the address.
+   * @param addressId - The ID of the address to set as default.
+   * @returns The updated address.
+   */
+  // region SET DEFAULT ADDRESS
   async setDefaultAddress(customerId: number, addressId: number) {
     // Check if address exists and belongs to customer
     const existingAddress = await this.prisma.address.findUnique({

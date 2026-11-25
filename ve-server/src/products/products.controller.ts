@@ -68,7 +68,7 @@ export class ProductsController {
       const uploadResults = await Promise.all(uploadPromises);
       const urls = uploadResults.map((res) => res.secure_url);
       dto.images_url = [...existingUrls, ...urls];
-      
+
     } else {
       dto.images_url = existingUrls;
     }
