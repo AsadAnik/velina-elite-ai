@@ -28,8 +28,13 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 @Roles(Role.admin, Role.owner)
 @Controller('customers')
 export class CustomersController {
-  constructor(private readonly customersService: CustomersService) {}
+  constructor(private readonly customersService: CustomersService) { }
 
+  /**
+   * Get all customers
+   * @param query Query parameters
+   * @returns Array of customers
+   */
   @Get()
   @ApiOperation({ summary: 'Get paginated customers list with search' })
   @UsePipes(new ValidationPipe({ transform: true, forbidNonWhitelisted: false }))
@@ -37,12 +42,23 @@ export class CustomersController {
     return this.customersService.getCustomers(query);
   }
 
+  /**
+   * Get customer by ID
+   * @param id Customer ID
+   * @returns Customer object
+   */
   @Get(':id')
   @ApiOperation({ summary: 'Get customer details by user ID' })
   getCustomerById(@Param('id', ParseIntPipe) id: number) {
     return this.customersService.getCustomerById(id);
   }
 
+  /**
+   * Update customer
+   * @param id Customer ID
+   * @param dto Update customer data
+   * @returns Updated customer object
+   */
   @Put(':id')
   @ApiOperation({ summary: 'Update customer and user profile (PUT)' })
   @UsePipes(
@@ -59,6 +75,12 @@ export class CustomersController {
     return this.customersService.updateCustomer(id, dto);
   }
 
+  /**
+   * Update customer
+   * @param id Customer ID
+   * @param dto Update customer data
+   * @returns Updated customer object
+   */
   @Patch(':id')
   @ApiOperation({ summary: 'Update customer and user profile (PATCH)' })
   @UsePipes(
@@ -75,6 +97,12 @@ export class CustomersController {
     return this.customersService.updateCustomer(id, dto);
   }
 
+  /**
+   * Delete customer
+   * @param id Customer ID
+   * @param user Current user
+   * @returns Success message
+   */
   @Delete(':id')
   @ApiOperation({ summary: 'Permanently delete customer and related profile' })
   deleteCustomer(

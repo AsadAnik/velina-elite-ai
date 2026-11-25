@@ -10,8 +10,14 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 
 @Injectable()
 export class CustomersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
+  /**
+   * Get all customers
+   * @param query Query parameters
+   * @returns Paginated list of customers
+   */
+  // region GET CUSTOMERS
   async getCustomers(query: QueryCustomersDto) {
     const page = Math.max(1, Number(query.page) || 1);
     const limit = Math.max(1, Math.min(100, Number(query.limit) || 10));
@@ -99,17 +105,17 @@ export class CustomersService {
         fullName,
         customer: user.customer
           ? {
-              id: user.customer.id,
-              fname: user.customer.fname || '',
-              lname: user.customer.lname || '',
-              phone: user.customer.phone || null,
-              gender: user.customer.gender || 'other',
-              addresses: user.customer.addresses || [],
-              ordersCount: user.customer._count?.orders ?? 0,
-              ratingsCount: user.customer._count?.ratings ?? 0,
-              wishlistsCount: user.customer._count?.wishlists ?? 0,
-              totalSpent,
-            }
+            id: user.customer.id,
+            fname: user.customer.fname || '',
+            lname: user.customer.lname || '',
+            phone: user.customer.phone || null,
+            gender: user.customer.gender || 'other',
+            addresses: user.customer.addresses || [],
+            ordersCount: user.customer._count?.orders ?? 0,
+            ratingsCount: user.customer._count?.ratings ?? 0,
+            wishlistsCount: user.customer._count?.wishlists ?? 0,
+            totalSpent,
+          }
           : null,
       };
     });
@@ -127,6 +133,12 @@ export class CustomersService {
     };
   }
 
+  /**
+   * Get customer by ID
+   * @param id Customer ID
+   * @returns Customer object
+   */
+  // region GET CUSTOMER BY ID
   async getCustomerById(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -181,6 +193,13 @@ export class CustomersService {
     };
   }
 
+  /**
+   * Update customer
+   * @param id Customer ID
+   * @param dto Update customer data
+   * @returns Updated customer object
+   */
+  // region UPDATE CUSTOMER
   async updateCustomer(id: number, dto: UpdateCustomerDto) {
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -228,12 +247,12 @@ export class CustomersService {
         ...userDataToUpdate,
         ...(user.customer && Object.keys(customerDataToUpdate).length > 0
           ? {
-              customer: {
-                update: customerDataToUpdate,
-              },
-            }
+            customer: {
+              update: customerDataToUpdate,
+            },
+          }
           : !user.customer && (dto.fname || dto.lname)
-          ? {
+            ? {
               customer: {
                 create: {
                   fname: dto.fname || user.username,
@@ -243,7 +262,7 @@ export class CustomersService {
                 },
               },
             }
-          : {}),
+            : {}),
       },
       include: {
         customer: {
@@ -268,6 +287,13 @@ export class CustomersService {
     };
   }
 
+  /**
+   * Delete customer
+   * @param id Customer ID
+   * @param currentUserId Current user ID
+   * @returns Success message
+   */
+  // region DELETE CUSTOMER
   async deleteCustomer(id: number, currentUserId: number) {
     if (id === currentUserId) {
       throw new BadRequestException('You cannot delete your own account');

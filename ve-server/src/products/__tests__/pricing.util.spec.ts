@@ -1,4 +1,4 @@
-import { buildPricingSummary } from './pricing.util';
+import { buildPricingSummary } from '../pricing.util';
 
 describe('buildPricingSummary', () => {
   it('calculates save percentage and amount from mrp and regular price', () => {

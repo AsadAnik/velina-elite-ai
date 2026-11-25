@@ -43,8 +43,13 @@ export type ChartPoint = {
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
+  /**
+   * Get dashboard statistics
+   * @returns Dashboard statistics
+   */
+  // region GET DASHBOARD STATS
   async getDashboardStats() {
     const now = new Date();
 
@@ -398,6 +403,12 @@ export class DashboardService {
     };
   }
 
+  /**
+   * Get relative time from a date
+   * @param date Date to get relative time from
+   * @returns Relative time string
+   */
+  // region HELPER FUNCTIONS
   private getRelativeTime(date: Date): string {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
     if (seconds < 60) return 'Just now';

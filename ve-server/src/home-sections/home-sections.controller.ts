@@ -46,7 +46,8 @@ export class HomeSectionsController {
   ) {}
 
   /**
-   * Public: Get all active sections for storefront
+   * Get all active sections for storefront
+   * @returns Array of home sections
    */
   @Get('public')
   @ApiOperation({ summary: 'Get active home sections for storefront' })
@@ -55,7 +56,8 @@ export class HomeSectionsController {
   }
 
   /**
-   * Admin: Get all sections
+   * Get all home sections
+   * @returns Array of home sections
    */
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -67,7 +69,9 @@ export class HomeSectionsController {
   }
 
   /**
-   * Reorder sections (batch update order_index)
+   * Reorder home sections
+   * @param dto Array of home sections
+   * @returns Array of home sections
    */
   @Patch('reorder')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -80,6 +84,9 @@ export class HomeSectionsController {
 
   /**
    * Reorder items within a section
+   * @param id Section ID
+   * @param dto Array of items
+   * @returns Array of items
    */
   @Patch(':id/items/reorder')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -94,7 +101,9 @@ export class HomeSectionsController {
   }
 
   /**
-   * Get single section
+   * Get home section by ID
+   * @param id Section ID
+   * @returns Home section object
    */
   @Get(':id')
   @ApiOperation({ summary: 'Get home section by ID' })
@@ -103,7 +112,10 @@ export class HomeSectionsController {
   }
 
   /**
-   * Admin: Create section with optional banner/background image upload
+   * Create home section
+   * @param dto Home section data
+   * @param files Banner and background image files
+   * @returns Created home section object
    */
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -147,7 +159,11 @@ export class HomeSectionsController {
   }
 
   /**
-   * Admin: Update section
+   * Update home section
+   * @param id Section ID
+   * @param dto Home section data
+   * @param files Banner and background image files
+   * @returns Updated home section object
    */
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -192,7 +208,9 @@ export class HomeSectionsController {
   }
 
   /**
-   * Admin: Delete section
+   * Delete home section
+   * @param id Section ID
+   * @returns Deleted home section object
    */
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -204,7 +222,11 @@ export class HomeSectionsController {
   }
 
   /**
-   * Admin: Add item to section
+   * Add item to home section
+   * @param sectionId Section ID
+   * @param dto Item data
+   * @param file Item image file
+   * @returns Added item object
    */
   @Post(':id/items')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -234,7 +256,11 @@ export class HomeSectionsController {
   }
 
   /**
-   * Admin: Update item
+   * Update home section item
+   * @param itemId Item ID
+   * @param dto Item data
+   * @param file Item image file
+   * @returns Updated item object
    */
   @Put('items/:itemId')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -264,7 +290,9 @@ export class HomeSectionsController {
   }
 
   /**
-   * Admin: Delete item
+   * Delete home section item
+   * @param itemId Item ID
+   * @returns Deleted item object
    */
   @Delete('items/:itemId')
   @UseGuards(JwtAuthGuard, RolesGuard)
